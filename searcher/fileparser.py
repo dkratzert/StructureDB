@@ -120,7 +120,7 @@ class Cif(object):
             line = line.rstrip('\r\n ')
             if not line:
                 loop = False
-                loophead_list.clear()
+                loophead_list = []
                 atkey = ''
                 symm = False
                 continue
@@ -231,7 +231,7 @@ class Cif(object):
                     semi_colon_text_list.append(line)
                 if (textlen - 1 > num) and txt[num + 1][0] == ";":
                     self.cif_data[semi_colon_text_field] = "{}".format(os.linesep).join(semi_colon_text_list)
-                    semi_colon_text_list.clear()
+                    semi_colon_text_list = []
                     semi_colon_text_field = ''
                     continue
             if (textlen - 1 > num) and txt[num + 1][0] == ";":
@@ -373,7 +373,7 @@ def delimit_line(line):
                     data.append(i.strip("'").strip('"'))
                     continue
             if i[0] == "'" or i[0] == '"':
-                word.clear()
+                word = []
                 word.append(i.strip("'").strip('"'))
                 cont = True
                 continue

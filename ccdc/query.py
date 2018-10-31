@@ -3,13 +3,14 @@ import subprocess
 import sys
 import xml.etree.ElementTree as ET
 from distutils.version import StrictVersion
-from pathlib import Path
 from pprint import pprint
-from shutil import which
 from tempfile import mkstemp
+
+from shelxfile.misc import which
+
 try:
     from winreg import OpenKey, HKEY_CURRENT_USER, EnumKey, QueryInfoKey, EnumValue
-except ModuleNotFoundError:
+except Exception:
     pass
 
 
@@ -30,14 +31,14 @@ querytext = """<?xml version="1.0" encoding="UTF-8"?>
 </query> """
 
 
-def get_cccsd_path() -> Path:
+def get_cccsd_path():
     """
     HKEY_CURRENT_USER\SOFTWARE\CCDC\CellCheckCSD
     """
     software = r'SOFTWARE\CCDC\CellCheckCSD\\'
     try:
         csd = OpenKey(HKEY_CURRENT_USER, software)
-    except (FileNotFoundError, NameError):
+    except Exception:
         return None
     num = QueryInfoKey(csd)[0]  # returns the number of subkeys
     csd_path = None
@@ -48,12 +49,12 @@ def get_cccsd_path() -> Path:
         ver = StrictVersion(vernum_dir)
         if QueryInfoKey(path)[1] > 0:  # subkey with content
             if latest < ver:
-                csd_path = Path(EnumValue(path, 0)[1], 'ccdc_searcher.bat')
+                csd_path = os.path.join(EnumValue(path, 0)[1], 'ccdc_searcher.bat')
     if csd_path.is_file():
         return csd_path
     else:
         try:
-            return Path(which('ccdc_searcher.bat'))
+            return which('ccdc_searcher.bat')
         except TypeError:
             return None
 
@@ -66,7 +67,7 @@ def read_queryfile():
     return tree
 
 
-def set_unitcell(cell: list, centering: str) -> ET:
+def set_unitcell(cell, centering):
     """
     Returns an xml query string for the CellCheckcsd -query option.
     """
@@ -88,7 +89,7 @@ def set_unitcell(cell: list, centering: str) -> ET:
     return ET.tostring(t)
 
 
-def parse_results(xmlinput: str) -> list:
+def parse_results(xmlinput):
     """
     Parses the search results into a dictionary.
     """
@@ -110,27 +111,27 @@ def parse_results(xmlinput: str) -> list:
     return results
 
 
-def search_csd(cell: list, centering: str) -> str:
+def search_csd(cell, centering):
     querystring = set_unitcell(cell, centering).decode('utf-8')
     # prepare the temporary queryfile:
     querydescriptor, queryfile = mkstemp(suffix='xml')
     # prepare the temporary results file:
     resdescriptor, resultfile = mkstemp(suffix='xml')
     # write query to file:
-    Path(queryfile).write_text(querystring)
+    os.path.abspath(queryfile).write_text(querystring)
     if sys.platform == 'win32':
         p = get_cccsd_path()
         shell = True
     else:
-        p = Path('/opt/CCDC/CellCheckCSD/bin/ccdc_searcher')
+        p = os.path.abspath('/opt/CCDC/CellCheckCSD/bin/ccdc_searcher')
         shell = False
     rf = ''
     try:
         # run the search:
         # shell=True disables the output window of the process
-        subprocess.run([str(p.absolute()), '-query', queryfile, '-results', resultfile], shell=shell)
+        subprocess.call([str(p.absolute()), '-query', queryfile, '-results', resultfile], shell=shell)
         # read the result:
-        rf = Path(resultfile).read_text(encoding='utf-8', errors='ignore')
+        rf = os.path.abspath(resultfile).read_text(encoding='utf-8', errors='ignore')
     except Exception as e:
         print('Could not search cell:')
         print(e)

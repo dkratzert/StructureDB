@@ -18,6 +18,10 @@ import platform
 import webbrowser
 from os.path import isfile
 from sqlite3 import DatabaseError, ProgrammingError
+from urlparse import urlparse
+
+from PyQt4 import QtCore, uic, QtGui
+from PyQt4.QtGui import QMainWindow, QPushButton, QProgressBar, QApplication, QFileDialog, QDialog, QTreeWidgetItem
 
 from displaymol.sdm import SDM
 from p4pfile.p4p_reader import P4PFile, read_file_to_list
@@ -98,8 +102,8 @@ class StartStructureDB(QMainWindow):
         self.dbfilename = None
         self.tmpfile = False  # indicates wether a tmpfile or any other db file is used
         # self.ui.centralwidget.setMinimumSize(1000, 500)
-        self.abort_import_button = QtWidgets.QPushButton("Abort")
-        self.progress = QtWidgets.QProgressBar(self)
+        self.abort_import_button = QPushButton("Abort")
+        self.progress = QProgressBar(self)
         self.progress.setFormat('')
         self.ui.statusbar.addWidget(self.progress)
         self.ui.statusbar.addWidget(self.abort_import_button)
@@ -127,7 +131,7 @@ class StartStructureDB(QMainWindow):
         self.ui.dateEdit2.setDate(QtCore.QDate(date.today()))
         if py36:
             try:
-                molf = pathlib.Path(os.path.join(application_path, "./displaymol/jsmol.htm"))
+                molf = os.path.join(application_path, "./displaymol/jsmol.htm")
                 molf.write_text(data=' ', encoding="utf-8", errors='ignore')
                 self.init_webview()
             except Exception as e:
@@ -229,7 +233,6 @@ class StartStructureDB(QMainWindow):
         """
         Handles drop events. 
         """
-        from urllib.parse import urlparse
         p = urlparse(e.mimeData().text())
         if sys.platform.startswith('win'):
             final_path = p.path[1:]  # remove strange / at start
@@ -294,7 +297,7 @@ class StartStructureDB(QMainWindow):
         print(len(results), 'Structures found...')
         self.statusBar().showMessage("{} structures found in the CSD".format(len(results), msecs=9000))
         for res in results:
-            csd_tree_item = QtWidgets.QTreeWidgetItem()
+            csd_tree_item = QTreeWidgetItem()
             self.ui.CSDtreeWidget.addTopLevelItem(csd_tree_item)
             csd_tree_item.setText(0, res['chemical_formula'])
             csd_tree_item.setText(1, res['cell_length_a'])
@@ -333,7 +336,7 @@ class StartStructureDB(QMainWindow):
                 if DEBUG:
                     raise
                 return False
-            clipboard = QtWidgets.QApplication.clipboard()
+            clipboard = QApplication.clipboard()
             clipboard.setText(cell)
             self.ui.statusbar.showMessage('Copied unit cell {} to clip board.'
                                           .format(cell))
@@ -443,7 +446,7 @@ class StartStructureDB(QMainWindow):
         """
         Manages the QDialog buttons on the password dialog.
         """
-        d = QtWidgets.QDialog()
+        d = QDialog()
         self.passwd = self.uipass.setupUi(d)
         ip_dialog = d.execute()
         if ip_dialog == 1:  # Accepted
@@ -479,11 +482,11 @@ class StartStructureDB(QMainWindow):
         # worker.start()
         self.tmpfile = True
         self.statusBar().showMessage('')
-        self.close_db()
+        #self.close_db()
         self.start_db()
         self.progressbar(1, 0, 20)
         self.abort_import_button.show()
-        fname = QtWidgets.QFileDialog.getExistingDirectory(self, 'Open Directory', '')
+        fname = QFileDialog.getExistingDirectory(self, 'Open Directory', '')
         if not fname:
             self.progress.hide()
             self.abort_import_button.hide()
@@ -521,7 +524,7 @@ class StartStructureDB(QMainWindow):
         self.ui.txtSearchEdit.clear()
         self.ui.cifList_treeWidget.clear()
         if py36:
-            molf = pathlib.Path(os.path.join(application_path, "./displaymol/jsmol.htm"))
+            molf = os.path.join(os.path.join(application_path, "./displaymol/jsmol.htm"))
             molf.write_text(data=' ', encoding="utf-8", errors='ignore')
             self.view.reload()
         try:
@@ -538,7 +541,7 @@ class StartStructureDB(QMainWindow):
         except:
             pass
         if copy_on_close:
-            if shutil._samefile(self.dbfilename, copy_on_close):
+            if samefile(self.dbfilename, copy_on_close):
                 self.statusBar().showMessage("You can not save to the currently opened file!", msecs=5000)
                 return False
             else:
@@ -585,7 +588,7 @@ class StartStructureDB(QMainWindow):
         Saves the database to a certain file. Therefore I have to close the database.
         """
         status = False
-        save_name, tst = QtWidgets.QFileDialog.getSaveFileName(self, caption='Save File', directory='./',
+        save_name, tst = QFileDialog.getSaveFileName(self, caption='Save File', directory='./',
                                                                filter="*.sqlite")
         if save_name:
             if shutil._samefile(self.dbfilename, save_name):
@@ -734,7 +737,7 @@ class StartStructureDB(QMainWindow):
             if key == "_shelx_res_file":
                 self.ui.SHELXplainTextEdit.setPlainText(cif_dic['_shelx_res_file'])
                 continue
-            cif_tree_item = QtWidgets.QTreeWidgetItem()
+            cif_tree_item = QTreeWidgetItem()
             self.ui.allCifTreeWidget.addTopLevelItem(cif_tree_item)
             cif_tree_item.setText(0, str(key))
             cif_tree_item.setText(1, str(value))
@@ -775,7 +778,7 @@ class StartStructureDB(QMainWindow):
                 raise
         # print(self.ui.openglview.width()-30, self.ui.openglview.height()-50)
         content = write_html.write(mol, self.ui.openglview.width() - 30, self.ui.openglview.height() - 50)
-        p2 = pathlib.Path(os.path.join(application_path, "./displaymol/jsmol.htm"))
+        p2 = os.path.join(application_path, "./displaymol/jsmol.htm")
         p2.write_text(data=content, encoding="utf-8", errors='ignore')
         self.view.reload()
 
@@ -948,7 +951,7 @@ class StartStructureDB(QMainWindow):
             path = path.decode("utf-8", "surrogateescape")
         if isinstance(data, bytes):
             data = data.decode("utf-8", "surrogateescape")
-        tree_item = QtWidgets.QTreeWidgetItem()
+        tree_item = QTreeWidgetItem()
         tree_item.setText(0, name)  # name
         tree_item.setText(1, data)  # data
         tree_item.setText(2, path)  # path
@@ -960,8 +963,8 @@ class StartStructureDB(QMainWindow):
         Import a new database.
         """
         self.tmpfile = False
-        self.close_db()
-        fname = QtWidgets.QFileDialog.getOpenFileName(self, caption='Open File', directory='./',
+        #self.close_db()
+        fname = QFileDialog.getOpenFileName(self, caption='Open File', directory='./',
                                                       filter="*.sqlite")
         if not fname[0]:
             return False
@@ -997,7 +1000,7 @@ class StartStructureDB(QMainWindow):
         """
         Reads a p4p file to get the included unit cell for a cell search.
         """
-        fname, _ = QtWidgets.QFileDialog.getOpenFileName(self, caption='Open p4p File', directory='./',
+        fname, _ = QFileDialog.getOpenFileName(self, caption='Open p4p File', directory='./',
                                                          filter="*.p4p *.cif *.res *.ins")
         _, ending = os.path.splitext(fname)
         if ending == '.p4p':
@@ -1046,9 +1049,9 @@ class StartStructureDB(QMainWindow):
         if fname:
             cif = Cif()
             try:
-                cif.parsefile(pathlib.Path(fname).read_text(encoding='utf-8',
+                cif.parsefile(os.path.abspath(fname).read_text(encoding='utf-8',
                                                             errors='ignore').splitlines(keepends=True))
-            except FileNotFoundError:
+            except Exception:
                 self.moving_message('File not found.')
         else:
             return
@@ -1225,7 +1228,7 @@ if __name__ == "__main__":
     from gui.strf_dbpasswd import Ui_PasswdDialog
 
     # later http://www.pyinstaller.org/
-    app = QtWidgets.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     app.setWindowIcon(QtGui.QIcon('./icons/strf.png'))
     # Has to be without version number, because QWebengine stores data in ApplicationName directory:
     app.setApplicationName('StructureFinder')

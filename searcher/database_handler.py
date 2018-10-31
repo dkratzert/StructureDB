@@ -277,6 +277,8 @@ class DatabaseRequest():
                     '''SELECT Structure.cell FROM Structure'''
         :type request: str
         """
+        # TODO: fix this hack
+        many = False
         try:
             if many:
                 # print(args)
