@@ -45,13 +45,13 @@ class SymmCards():
     def __init__(self):
         self._symmcards = [SymmetryElement(['X', 'Y', 'Z'])]
 
-    def _as_str(self) -> str:
+    def _as_str(self):
         return "\n".join([str(x) for x in self._symmcards])
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return self._as_str()
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self._as_str()
 
     def __getitem__(self, item):
@@ -61,7 +61,7 @@ class SymmCards():
         for x in self._symmcards:
             yield x
 
-    def append(self, symmData: list) -> None:
+    def append(self, symmData):
         """
         Add the content of a Shelxl SYMM command to generate the appropriate SymmetryElement instance.
         :param symmData: list of strings. eg.['1/2+X', '1/2+Y', '1/2+Z']
@@ -87,7 +87,7 @@ class SDMItem(object):
     def __lt__(self, a2):
         return True if self.dist < a2.dist else False
 
-    def __eq__(self, other: 'SDMItem'):
+    def __eq__(self, other):
         if other.a1 == self.a2 and other.a2 == self.a1:
             return True
         return False
@@ -99,7 +99,7 @@ class SDMItem(object):
 
 
 class SDM():
-    def __init__(self, atoms: list, symmcards: list, cell: list):
+    def __init__(self, atoms, symmcards, cell):
         """
         Calculates the shortest distance matrix
                         0      1      2  3  4   5     6          7
@@ -136,7 +136,7 @@ class SDM():
                         (self.cell[2] * (cos(self.cell[3]) - cos(self.cell[4]) * cos(self.cell[5])) / sin(self.cell[5]))],
                        [0, 0, self.cell[6] / (self.cell[0] * self.cell[1] * sin(self.cell[5]))]])
 
-    def calc_sdm(self) -> list:
+    def calc_sdm(self):
         t1 = time.perf_counter()
         self.bondlist.clear()
         for i, at1 in enumerate(self.atoms):
@@ -191,7 +191,7 @@ class SDM():
             print("The asymmetric unit contains {} fragments.".format(self.maxmol))
         return need_symm
 
-    def collect_needed_symmetry(self) -> list:
+    def collect_needed_symmetry(self):
         need_symm = []
         # Collect needsymm list:
         for sdmItem in self.sdm_list:
@@ -250,14 +250,14 @@ class SDM():
                 self.maxmol += 1
                 all_atoms[nextmol][-1] = self.maxmol
 
-    def vector_length(self, x: float, y: float, z: float) -> float:
+    def vector_length(self, x, y, z):
         """
         Calculates the vector length given in fractional coordinates.
         """
         A = 2.0 * (x * y * self.aga + x * z * self.bbe + y * z * self.cal)
         return sqrt(x ** 2 * self.asq + y ** 2 * self.bsq + z ** 2 * self.csq + A)
 
-    def packer(self, sdm: 'SDM', need_symm: list, with_qpeaks=False):
+    def packer(self, sdm, need_symm, with_qpeaks=False):
         """
         Packs atoms of the asymmetric unit to real molecules.
         """

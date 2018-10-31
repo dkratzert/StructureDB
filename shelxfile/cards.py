@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import re
 from math import cos, radians, sqrt
 
@@ -96,7 +97,7 @@ ZERR Z esd(a) esd(b) esd(c) esd(α) esd(β) esd(γ)
 
 class Restraint:
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         Base class for parsing restraints.
         TODO: resolve ranges like SADI_CCF3 O1 > F9
@@ -200,7 +201,7 @@ class Command():
     A class to parse all general commands except restraints.
     """
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         self.shx = shx
         self.spline = spline
         self.residue_class = ''
@@ -298,7 +299,7 @@ class ANIS(Command):
 
 class MPLA(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         MPLA na atomnames
         """
@@ -310,7 +311,7 @@ class MPLA(Command):
 
 class MORE(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         MORE m[1]
         """
@@ -322,7 +323,7 @@ class MORE(Command):
 
 class CELL(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         CELL λ a b c α β γ
         """
@@ -346,7 +347,7 @@ class CELL(Command):
             raise ParseSyntaxError
 
     @property
-    def volume(self) -> float:
+    def volume(self):
         """
         calculates the volume of a unit cell
 
@@ -364,7 +365,7 @@ class CELL(Command):
         return v
 
     @property
-    def V(self) -> float:
+    def V(self):
         return self.volume
 
     def __iter__(self):
@@ -376,7 +377,7 @@ class CELL(Command):
 
 class ZERR(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         ZERR Z esd(a) esd(b) esd(c) esd(α) esd(β) esd(γ)
         """
@@ -397,7 +398,7 @@ class ZERR(Command):
 
 class AFIX(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         AFIX mn d[#] sof[11] U[10.08]
         """
@@ -429,7 +430,7 @@ class Residues():
         self.residue_classes = {}  # class: numbers
         # self.residue_numbers = {}  # number: class
 
-    def append(self, resi: 'RESI') -> None:
+    def append(self, resi):
         """
         Adds a new residues to the list of residues.
         """
@@ -455,7 +456,7 @@ class Residues():
 
 class RESI():
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         RESI class[ ] number[0] alias
         """
@@ -474,7 +475,7 @@ class RESI():
             print('*** Invalid residue number given. ****')
             raise ParseSyntaxError
 
-    def get_resi_definition(self, resi: list) -> tuple:
+    def get_resi_definition(self, resi):
         """
         RESI class[ ] number[0] alias
 
@@ -573,7 +574,7 @@ class RESI():
 
 class PART(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         PART n sof
         """
@@ -601,7 +602,7 @@ class PART(Command):
 
 class XNPD(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         XNPD Umin[-0.001]
         """
@@ -614,7 +615,7 @@ class XNPD(Command):
 
 class SIZE(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         SIZE dx dy dz
         """
@@ -643,7 +644,7 @@ class SIZE(Command):
 
 class SHEL(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         SHEL lowres[infinite] highres[0]
         """
@@ -657,7 +658,7 @@ class SHEL(Command):
 
 class WIGL(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         WIGL del[0.2] dU[0.2]
         """
@@ -673,7 +674,7 @@ class WIGL(Command):
 
 class WPDB(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         WPDB n[1]
         """
@@ -686,7 +687,7 @@ class WPDB(Command):
 
 class SPEC(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         SPEC d[0.2]
         """
@@ -698,7 +699,7 @@ class SPEC(Command):
 
 class STIR(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         STIR sres step[0.01]
         """
@@ -719,7 +720,7 @@ class STIR(Command):
 
 class TWST(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         TWST N[0] (N[1] after SHELXL-2018/3)
         Twin component number to be used for the completeness and Friedel completeness statistics.
@@ -733,7 +734,7 @@ class TWST(Command):
 
 class RTAB(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         RTAB codename atomnames
         """
@@ -744,7 +745,7 @@ class RTAB(Command):
 
 class PRIG(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         PRIG p[#]
         """
@@ -756,7 +757,7 @@ class PRIG(Command):
 
 class PLAN(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         PLAN npeaks[20] d1[#] d2[#]
         """
@@ -772,7 +773,7 @@ class PLAN(Command):
 
 class FRAG(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         FRAG code[17] a[1] b[1] c[1] α[90] β[90] γ[90]
         """
@@ -784,7 +785,7 @@ class FRAG(Command):
 
 class FREE(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         FREE atom1 atom2
         """
@@ -806,7 +807,7 @@ class FMAP(Command):
     2.0
     """
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         super(FMAP, self).__init__(shx, spline)
         params, _ = self._parse_line(spline)
         if len(params) > 0:
@@ -819,7 +820,7 @@ class FMAP(Command):
 
 class MOVE(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         MOVE dx[0] dy[0] dz[0] sign[1]
         """
@@ -833,7 +834,7 @@ class MOVE(Command):
 
 class MERG(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         MERG n[2]
         """
@@ -846,7 +847,7 @@ class MERG(Command):
 
 class HTAB(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         HTAB dh[2.0]
         HTAB donor-atom acceptor-atom
@@ -863,7 +864,7 @@ class HTAB(Command):
 
 class GRID(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         GRID sl[#] sa[#] sd[#] dl[#] da[#] dd[#]
         """
@@ -903,7 +904,7 @@ class ACTA(Command):
     [UNIT 1  2  3  4  5  6, ACTA 45, 'LIST 4 ! automatically inserted. Change 6 to 4 for CHECKCIF!!']
     """
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         ACTA 2θfull[#]
         """
@@ -926,7 +927,7 @@ class ACTA(Command):
 
 class BLOC(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         BLOC n1 n2 atomnames
         """
@@ -940,7 +941,7 @@ class BLOC(Command):
 
 
 class FVAR():
-    def __init__(self, number: int = 1, value: float = 0.0):
+    def __init__(self, number = 1, value = 0.0):
         """
         FVAR osf[1] free variables
         """
@@ -969,7 +970,7 @@ class FVARs():
         for x in self.fvars:
             yield x
 
-    def __getitem__(self, item: int) -> str:
+    def __getitem__(self, item):
         # SHELXL counts fvars from 1 to x:
         item = abs(item) - 1
         return self.fvars[item].fvar_value
@@ -977,10 +978,10 @@ class FVARs():
     def __setitem__(self, key, fvar_value):
         self.fvars[key] = fvar_value
 
-    def __len__(self) -> int:
+    def __len__(self):
         return len(self.fvars)
 
-    def __str__(self) -> str:
+    def __str__(self):
         # returnes FVAR as list of FVAR instructions with seven numbers in one line
         lines = chunks(self.as_stringlist, 7)
         fvars = ['   '.join(i) for i in lines]
@@ -991,10 +992,10 @@ class FVARs():
         return str([x for x in self.fvars])
 
     @property
-    def position(self) -> int:
+    def position(self):
         return self.shx.index_of(self)
 
-    def set_free_variables(self, fvar: int, dummy_fvar: float = 0.5):
+    def set_free_variables(self, fvar, dummy_fvar = 0.5):
         """
         Inserts additional free variables according to the fvar number.
         """
@@ -1008,10 +1009,10 @@ class FVARs():
                 fv = FVAR(varlen + n, dummy_fvar)
                 self.fvars.append(fv)
 
-    def append(self, fvar) -> None:
+    def append(self, fvar):
         self.fvars.append(fvar)
 
-    def set_fvar_usage(self, fvarnum: int, times: int = 1) -> None:
+    def set_fvar_usage(self, fvarnum, times = 1):
         """
         Incerements the usage count of a free variable by times.
         """
@@ -1049,7 +1050,7 @@ class FVARs():
 
 class CONF(Command):
 
-    def __init__(self, shx, spline: list) -> None:
+    def __init__(self, shx, spline):
         """
         CONF atomnames max_d[1.9] max_a[170]
         """
@@ -1058,7 +1059,7 @@ class CONF(Command):
 
 class CONN(Command):
 
-    def __init__(self, shx, spline: list) -> None:
+    def __init__(self, shx, spline):
         """
         CONN bmax[12] r[#] atomnames or CONN bmax[12]
         """
@@ -1067,7 +1068,7 @@ class CONN(Command):
 
 class REM(Command):
 
-    def __init__(self, shx, spline: list) -> None:
+    def __init__(self, shx, spline):
         """
         Parses REM lines
         """
@@ -1076,7 +1077,7 @@ class REM(Command):
 
 class BIND(Command):
 
-    def __init__(self, shx, spline: list) -> None:
+    def __init__(self, shx, spline):
         """
         BIND atom1 atom2
         BIND m n
@@ -1087,7 +1088,7 @@ class BIND(Command):
 
 class BOND(Command):
 
-    def __init__(self, shx, spline: list) -> None:
+    def __init__(self, shx, spline):
         """
         BOND atomnames
         """
@@ -1100,7 +1101,7 @@ class DISP(Command):
     DISP E f' f"[#] mu[#]
     """
 
-    def __init__(self, shx, spline: list) -> None:
+    def __init__(self, shx, spline):
         super(DISP, self).__init__(shx, spline)
         self.element, self.parameter = self._parse_line(spline)
 
@@ -1108,7 +1109,7 @@ class DISP(Command):
 class Restraints():
     """
     Base class for the list of restraints.
-    :type _restraints: List[Restraint]
+    :type _restraints[Restraint]
     """
 
     def __init__(self):
@@ -1133,7 +1134,7 @@ class Restraints():
             return 'No Restraints in file.'
 
     @staticmethod
-    def _resolve_atoms(shx, restr: Restraint):
+    def _resolve_atoms(shx, restr):
         atoms = restr.atoms
         for atnum, ap in enumerate(atoms):
             if not isinstance(ap, (list, tuple)):
@@ -1160,7 +1161,7 @@ class DEFS(Restraint):
     ss = 0.04
     maxsof = 1
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         DEFS sd[0.02] sf[0.1] su[0.01] ss[0.04] maxsof[1]
         Changes the *default* effective standard deviations for the following
@@ -1192,7 +1193,7 @@ class NCSY(Restraint):
     NCSY DN sd[0.1] su[0.05] atoms
     """
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         super(NCSY, self).__init__(shx, spline)
         self.sd = 0.1
         self.su = 0.05
@@ -1210,7 +1211,7 @@ class NCSY(Restraint):
 
 class ISOR(Restraint):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         ISOR s[0.1] st[0.2] atomnames
         """
@@ -1229,7 +1230,7 @@ class FLAT(Restraint):
     FLAT s[0.1] four or more atoms
     """
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         super(FLAT, self).__init__(shx, spline)
         self.s = 0.1
         p, self.atoms = self._parse_line(spline, pairs=False)
@@ -1332,7 +1333,7 @@ class SAME(Restraint):
 
 class RIGU(Restraint):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         RIGU s1[0.004] s2[0.004] atomnames
         """
@@ -1348,7 +1349,7 @@ class RIGU(Restraint):
 
 class SIMU(Restraint):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         SIMU s[0.04] st[0.08] dmax[2.0] atomnames
         """
@@ -1367,7 +1368,7 @@ class SIMU(Restraint):
 
 class DELU(Restraint):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         DELU s1[0.01] s2[0.01] atomnames
         """
@@ -1383,7 +1384,7 @@ class DELU(Restraint):
 
 class CHIV(Restraint):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         CHIV V[0] s[0.1] atomnames
         """
@@ -1402,7 +1403,7 @@ class EADP(Restraint):
     EADP atomnames
     """
 
-    def __init__(self, shx, spline: list) -> None:
+    def __init__(self, shx, spline):
         super(EADP, self).__init__(shx, spline)
         _, self.atoms = self._parse_line(spline, pairs=False)
 
@@ -1412,7 +1413,7 @@ class EXYZ(Restraint):
     EADP atomnames
     """
 
-    def __init__(self, shx, spline: list) -> None:
+    def __init__(self, shx, spline):
         super(EXYZ, self).__init__(shx, spline)
         _, self.atoms = self._parse_line(spline, pairs=False)
 
@@ -1422,7 +1423,7 @@ class DAMP(Command):
     DAMP damp[0.7] limse[15]
     """
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         super(DAMP, self).__init__(shx, spline)
         values, _ = self._parse_line(spline, intnums=False)
         self.damp, self.limse = 0, 0
@@ -1431,7 +1432,7 @@ class DAMP(Command):
         if len(values) > 1:
             self.damp, self.limse = values
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         if self.limse == 0:
             return "DAMP  {:,g}".format(self.damp)
         else:
@@ -1440,7 +1441,7 @@ class DAMP(Command):
 
 class HFIX(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         HFIX mn U[#] d[#] atomnames
         """
@@ -1454,7 +1455,7 @@ class HFIX(Command):
 
 class HKLF(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         HKLF N[0] S[1] r11...r33[1 0 0 0 1 0 0 0 1] sm[1] m[0]
         """
@@ -1487,7 +1488,7 @@ class SUMP(Command):
     SUMP c sigma c1 m1 c2 m2 ...
     """
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         super(SUMP, self).__init__(shx, spline)
         p, _ = self._parse_line(spline)
         self.c = p.pop(0)
@@ -1519,7 +1520,7 @@ class LATT(Command):
 
     lattint_to_str = { 1: 'P', 2: 'I', 3: 'R', 4: 'F', 5: 'A', 6: 'B', 7: 'C' }
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         LATT N[1]
         """
@@ -1538,14 +1539,14 @@ class LATT(Command):
 
 class SYMM(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         SYMM symmetry operation
         """
         super(SYMM, self).__init__(shx, spline)
         self.symmcard = self._parse_line(spline)
 
-    def _parse_line(self, spline: list, intnums: bool = False) -> list:
+    def _parse_line(self, spline, intnums = False):
         symmcard = ''.join(spline[1:]).split(',')  # removes whitespace
         return symmcard
 
@@ -1555,7 +1556,7 @@ class SYMM(Command):
     def __repr__(self):
         return self._as_str()
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self._as_str()
 
 
@@ -1569,13 +1570,13 @@ class SymmCards():
         self._symmcards = [SymmetryElement(['X', 'Y', 'Z'])]
         self.lattOps = []
 
-    def _as_str(self) -> str:
+    def _as_str(self):
         return "\n".join([str(x) for x in self._symmcards])
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return self._as_str()
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self._as_str()
 
     def __getitem__(self, item):
@@ -1585,10 +1586,10 @@ class SymmCards():
         for x in self._symmcards:
             yield x
 
-    def append(self, symmData: list) -> None:
+    def append(self, symmData):
         """
         Add the content of a Shelxl SYMM command to generate the appropriate SymmetryElement instance.
-        :param symmData: list of strings. eg.['1/2+X', '1/2+Y', '1/2+Z']
+        :param symmData of strings. eg.['1/2+X', '1/2+Y', '1/2+Z']
         :return: None
         """
         newSymm = SymmetryElement(symmData)
@@ -1604,7 +1605,7 @@ class SymmCards():
                 lattSymm.centric = True
                 self._symmcards.append(lattSymm)
 
-    def set_centric(self, value: bool):
+    def set_centric(self, value):
         """
         Defines the instance as representing a centrosymmetric structure. Generates the appropriate SymmetryElement
         instances automatically if called before adding further SYMM commands via self.addSymm().
@@ -1613,17 +1614,17 @@ class SymmCards():
         self._symmcards.append(SymmetryElement(['-X', '-Y', '-Z']))
         self._symmcards[-1].centric = True
 
-    def set_latt_ops(self, lattOps: list) -> None:
+    def set_latt_ops(self, lattOps):
         """
         Adds lattice operations. If called before adding SYMM commands, the appropriate lattice operations are used
         automatically to generate further SymmetryElements.
-        :param lattOps: list of SymmetryElement instances.
+        :param lattOps of SymmetryElement instances.
         """
         self.lattOps = lattOps
 
 
 class LSCycles(Command):
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         L.S. nls[0] nrf[0] nextra[0]
         If nrf is positive, it is the number of these cycles that should be performed before applying ANIS.
@@ -1658,7 +1659,7 @@ class LSCycles(Command):
     def number(self):
         return self.cycles
 
-    def set_refine_cycles(self, number: int):
+    def set_refine_cycles(self, number):
         """
         Sets the number of refinement cycles for the current res file.
         >>> from shelxfile.shelx import ShelXFile
@@ -1725,7 +1726,7 @@ class SFACTable():
             sftext += "\nSFAC " + "  ".join(elements)
         return sftext[1:]
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index):
         """
         Returns the n-th element in the sfac table, beginning with 1.
         """
@@ -1735,7 +1736,7 @@ class SFACTable():
             index = len(self.sfac_table) + index + 1
         return self.sfac_table[index - 1]['element'].capitalize()
 
-    def parse_element_line(self, spline: list):
+    def parse_element_line(self, spline):
         """
         Adds a new SFAC card to the list of cards.
         >>> from shelxfile.shelx import ShelXFile
@@ -1775,7 +1776,7 @@ class SFACTable():
     def is_exp(item):
         return 'a1' in item
 
-    def add_element(self, element: str):
+    def add_element(self, element):
         """
         Adds an element to the SFAC list. 
         """
@@ -1785,21 +1786,21 @@ class SFACTable():
         self.sfac_table.append({'element': element.upper(), 'line_number': None})
         self.shx.unit.add_number(1)
 
-    def remove_element(self, element: str):
+    def remove_element(self, element):
         del self.sfac_table[self.shx.elem2sfac(element.upper()) - 1]
         del self.elements_list[self.elements_list.index(element.upper())]
 
 
 class UNIT(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         UNIT n1 n2 ...
         """
         super(UNIT, self).__init__(shx, spline)
         self.values, _ = self._parse_line(spline)
 
-    def add_number(self, number: float):
+    def add_number(self, number):
         self.values.append(number)
 
     def __iter__(self):
@@ -1834,7 +1835,7 @@ class BASF(Command):
 
 class TWIN(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         TWIN 3x3 matrix [-1 0 0 0 -1 0 0 0 -1] N[2]
         +N     -N  m = |N|
@@ -1863,7 +1864,7 @@ class TWIN(Command):
 
 class WGHT(Command):
 
-    def __init__(self, shx, spline: list):
+    def __init__(self, shx, spline):
         """
         The weighting scheme is defined as follows:
         w = q / [ σ²(Fo²) + (a*P)² + b*P + d + e*sin(θ)/$lambda; ]
@@ -1900,7 +1901,7 @@ class WGHT(Command):
             wght += ' {} {} {} {}'.format(self.c, self.d, self.e, self.f)
         return wght
 
-    def difference(self) -> list:
+    def difference(self):
         """
         Returns a list with the weight differences of the parameters a and b. 
         """

@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 
-def write(moldata: str, width: int = 240, height: int = 240):
+def write(moldata, width = 240, height = 240):
     m = """
     <!DOCTYPE html>
     <html>

@@ -285,7 +285,7 @@ class Cif(object):
         elif self.cif_data['_space_group_name_Hall']:
             self.cif_data["_space_group_centring_type"] = self.cif_data["_space_group_name_Hall"].split()[0][:1]
 
-    def __iter__(self) -> dict:
+    def __iter__(self):
         """
         An iterable for the Cif object
         :return: cif entries
@@ -310,7 +310,7 @@ class Cif(object):
         else:
             return ''
 
-    def __str__(self) -> str:
+    def __str__(self):
         """
         The string representation for print(self)
         """
@@ -347,7 +347,7 @@ class Cif(object):
         return [a, b, c, alpha, beta, gamma]
 
 
-def delimit_line(line: str) -> list:
+def delimit_line(line):
     """
     Searches for delimiters in a cif line and returns a list of the respective values.
     >>> line = " 'C'  'C'   0.0033   0.0016   'some text inside' \\"more text\\""

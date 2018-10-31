@@ -2,7 +2,6 @@
 MOl V3000 format
 """
 import os
-from time import perf_counter
 
 from searcher.misc import distance
 from searcher.atoms import get_radius_from_element
@@ -13,7 +12,7 @@ class MolFile(object):
     This mol file writer is only to use the file with JSmol, not to implement the standard exactly!
     """
 
-    def __init__(self, atoms: list, bonds = None):
+    def __init__(self, atoms, bonds = None):
         self.atoms = atoms
         if bonds:
             self.bonds = bonds
@@ -22,20 +21,20 @@ class MolFile(object):
         self.bondscount = len(self.bonds)
         self.atomscount = len(self.atoms)
 
-    def header(self) -> str:
+    def header(self):
         """
         For JSmol, I don't need a facy header.
         """
         return "{}{}{}".format(os.linesep, os.linesep, os.linesep)
 
-    def connection_table(self) -> str:
+    def connection_table(self):
         """
           6  6  0  0  0  0  0  0  0  0  1 V3000
         """
         tab = "{:>5d}{:>5d}".format(self.atomscount, self.bondscount)
         return tab
 
-    def get_atoms_string(self) -> str:
+    def get_atoms_string(self):
         """
         Returns a string with an atom in each line.
         X Y Z Element
@@ -45,7 +44,7 @@ class MolFile(object):
             atoms.append("{:>10.4f}{:>10.4f}{:>10.4f} {:<2s}".format(at[2], at[3], at[4], at[1]))
         return '\n'.join(atoms)
 
-    def get_bonds_string(self) -> str:
+    def get_bonds_string(self):
         """
         This is not accodingly to the file standard!
         The standard wants to have fixed format 3 digits for the bonds.
@@ -92,7 +91,7 @@ class MolFile(object):
         #print('len:', len(conlist))
         return conlist
 
-    def footer(self) -> str:
+    def footer(self):
         """
         """
         return "M  END{}$$$$".format(os.linesep)

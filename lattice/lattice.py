@@ -57,7 +57,7 @@ class A(object):
             [ 0.526803]])
     """
 
-    def __init__(self, cell: list):
+    def __init__(self, cell):
         self.a, self.b, self.c, alpha, beta, gamma = cell
         self.V = vol_unitcell(self.a, self.b, self.c, alpha, beta, gamma)
         self.alpha = radians(alpha)

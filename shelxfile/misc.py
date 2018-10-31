@@ -13,7 +13,6 @@ import os
 import re
 import textwrap
 import time
-from shutil import get_terminal_size
 
 from shelxfile.dsrmath import frac_to_cart, subtract_vect, determinante
 
@@ -64,11 +63,6 @@ class ParseSyntaxError(Exception):
             print("*** Syntax Error ***")
 
 
-try:
-    width, height = get_terminal_size()  # @UnusedVariable
-except():
-    width = 80
-sep_line = (width-1)*'-'
 
 
 def remove_file(filename, exit_dsr=False):
@@ -87,7 +81,7 @@ def remove_file(filename, exit_dsr=False):
         return True
 
 
-def find_line(inputlist: list, regex: str, start: int = None) -> int:
+def find_line(inputlist, regex, start = None):
     """
     returns the index number of the line where regex is found in the inputlist
     if stop is true, stop searching with first line found
@@ -120,7 +114,7 @@ def find_line(inputlist: list, regex: str, start: int = None) -> int:
     return -1  # returns -1 if no regex found
 
 
-def which(name: str, flags=os.X_OK, exts=None) -> list:
+def which(name, flags=os.X_OK, exts=None):
     """
     Search PATH for executable files with the given name.
 
@@ -145,7 +139,7 @@ def which(name: str, flags=os.X_OK, exts=None) -> list:
     return result
 
 
-def split_fvar_and_parameter(parameter: float) -> tuple:
+def split_fvar_and_parameter(parameter):
     """
     Returns the free variable and value of a given parameter e.g. 30.5 for the occupancy.
     :return (fvar: int, value: float)
@@ -252,7 +246,7 @@ def time_this_method(f):
     return wrapper
 
 
-def chunks(l: list, n: int) -> list:
+def chunks(l, n):
     """
     returns successive n-sized chunks from l.
     >>> l = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 'a', 'b', 'c', 'd', 'e', 'f']
@@ -266,7 +260,7 @@ def chunks(l: list, n: int) -> list:
     return [l[i:i + n] for i in range(0, len(l), n)]
 
 
-def multiline_test(line: str) -> bool:
+def multiline_test(line):
     """
     test if the current line is a multiline with "=" at the end
     :param line: 'O1 3 -0.01453 1.66590 0.10966 11.00 0.05 ='
@@ -394,7 +388,7 @@ class ResList():
         self.size += 1
 
 
-def wrap_line(line: str) -> str:
+def wrap_line(line):
     """
     Wraps long lines according to SHELXL syntax with = at end and space characters before the next line.
     The wrapping will only be at whitespace, not inside words.
@@ -419,7 +413,7 @@ def wrap_line(line: str) -> str:
     return line
 
 
-def range_resolver(atoms_range: list, atom_names: list) -> list:
+def range_resolver(atoms_range, atom_names):
     """
     Resolves the atom names of ranges like "C1 > C5"
     and works for each restraint line separately.

@@ -17,7 +17,7 @@ This file reads Bruker p4p files into a data structure.
 from shelxfile.dsrmath import Matrix
 
 
-def read_file_to_list(p4pfile: str) -> list:
+def read_file_to_list(p4pfile):
     """
     Reads a file and returns a list without line endings.
     """

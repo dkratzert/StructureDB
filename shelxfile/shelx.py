@@ -83,7 +83,7 @@ class ShelXFile():
     _diff_peak_regex = re.compile(r'^REM\sHighest\sdifference', re.IGNORECASE)
 
     @time_this_method
-    def __init__(self: 'ShelXFile', resfile: str):
+    def __init__(self, resfile):
         """
         Reads the shelx file and extracts information.
 
@@ -736,8 +736,7 @@ class ShelXFile():
                     print(e)
                     raise
 
-    def add_atom(self, name: str = None, coordinates: list = None, element='C', uvals: list = None, part: int = 0,
-                 sof: float = 11.0):
+    def add_atom(self, name = None, coordinates = None, element='C', uvals = None, part = 0, sof = 11.0):
         """
         Adds an atom to the ShelxFile.atoms list. If no element is given, carbon atoms are assumed.
         """
@@ -802,7 +801,7 @@ class ShelXFile():
             return True
         return True
 
-    def read_file_to_list(self, resfile: str) -> list:
+    def read_file_to_list(self, resfile):
         """
         Read in shelx file and returns a list without line endings. +include files are inserted
         also.
@@ -844,7 +843,7 @@ class ShelXFile():
         return reslist
 
     @staticmethod
-    def read_nested_file_to_list(resfile: str) -> list:
+    def read_nested_file_to_list(resfile):
         """
         Read in shelx file and returns a list without line endings.
         :param resfile: The path to a SHLEL .res or .ins file.
@@ -882,7 +881,7 @@ class ShelXFile():
         return card
 
     @staticmethod
-    def is_atom(atomline: str) -> bool:
+    def is_atom(atomline):
         """
         Returns True is line contains an atom.
         atomline:  'O1    3    0.120080   0.336659   0.494426  11.00000   0.01445 ...'
@@ -911,7 +910,7 @@ class ShelXFile():
         else:
             return False
 
-    def elem2sfac(self, atom_type: str) -> int:
+    def elem2sfac(self, atom_type):
         """
         returns an sfac-number for the element given in "atom_type"
         >>> shx = ShelXFile('tests/p21c.res')
@@ -926,7 +925,7 @@ class ShelXFile():
             if atom_type.upper() == element.upper():
                 return num  # return sfac number
 
-    def sfac2elem(self, sfacnum: int) -> str:
+    def sfac2elem(self, sfacnum):
         """
         returns an element and needs an sfac-number
         :param sfacnum: string like '2'
@@ -950,13 +949,13 @@ class ShelXFile():
             return ''
         return elem
 
-    def add_line(self, linenum: int, obj):
+    def add_line(self, linenum, obj):
         """
         Adds a new SHELX card to the reslist after linenum.
         """
         self._reslist.insert(linenum + 1, obj)
 
-    def replace_line(self, obj, new_line: str):
+    def replace_line(self, obj, new_line):
         """
         Replaces a single line in the res file with new_line.
         """
@@ -966,7 +965,7 @@ class ShelXFile():
         return self._reslist.index(obj)
 
     @property
-    def sum_formula(self) -> str:
+    def sum_formula(self):
         """
         The sum formula of the structure with regards of the UNIT instruction.
         """
@@ -996,7 +995,7 @@ class ShelXFile():
             return
 
     @property
-    def sum_formula_exact(self) -> str:
+    def sum_formula_exact(self):
         """
         The sum formula of the structure with all atom occupancies summed together as string.
         """
@@ -1006,7 +1005,7 @@ class ShelXFile():
             formstring += "{}{:,g} ".format(el, round(sumdict[el], 2))
         return formstring.strip()
 
-    def sum_formula_ex_dict(self) -> dict:
+    def sum_formula_ex_dict(self):
         """
         The sum formula of the structure with all atom occupancies summed together as dictionary.
         """
@@ -1022,7 +1021,7 @@ class ShelXFile():
                 sumdict[el] = 0.0
         return sumdict
 
-    def insert_frag_fend_entry(self, dbatoms: list, cell: list):
+    def insert_frag_fend_entry(self, dbatoms, cell):
         """
         Inserts the FRAG ... FEND entry in the res file.
         :param dbatoms:   list of atoms in the database entry

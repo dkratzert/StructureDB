@@ -266,7 +266,7 @@ class DatabaseRequest():
         row = self.cur.fetchone()
         return row
 
-    def db_request(self, request, *args, many=False) -> (list, tuple):
+    def db_request(self, request, *args):
         """
         Performs a SQLite3 database request with "request" and optional arguments
         to insert parameters via "?" into the database request.
@@ -358,7 +358,7 @@ class StructureTable():
         if found:
             return found
 
-    def get_all_structures_as_dict(self, ids: (list, tuple) = None, all=False) -> dict:
+    def get_all_structures_as_dict(self, ids = None, all=False):
         """
         Returns the list of structures as dictionary.
 
@@ -385,14 +385,14 @@ class StructureTable():
                       Structure.dataname FROM Structure'''
         else:
             return {}
-        rows = self.database.db_request(req, many=False)
+        rows = self.database.db_request(req)
         self.database.cur.close()
         # setting row_factory back to regular touple base requests:
         self.database.con.row_factory = None
         self.database.cur = self.database.con.cursor()
         return rows
 
-    def get_all_structure_names(self, ids: list = None) -> list:
+    def get_all_structure_names(self, ids = None):
         """
         returns all fragment names in the database, sorted by name
         :returns [id, meas, path, filename, data]
@@ -423,7 +423,7 @@ class StructureTable():
         path = self.database.db_request(req_path)[0]
         return path
 
-    def fill_structures_table(self, path: str, filename: str, structure_id: str, measurement_id: int, dataname: str):
+    def fill_structures_table(self, path, filename, structure_id, measurement_id, dataname):
         """
         Fills a structure into the database.
         """
@@ -436,7 +436,7 @@ class StructureTable():
         self.database.db_request(req, (structure_id, measurement_id, filename, path, dataname))
         return structure_id
 
-    def fill_measuremnts_table(self, name: str, structure_id):
+    def fill_measuremnts_table(self, name, structure_id):
         """
         Fills a measurements into the database.
 
@@ -504,7 +504,7 @@ class StructureTable():
         else:
             return False
 
-    def fill_formula(self, structure_id, formula: dict):
+    def fill_formula(self, structure_id, formula):
         """
         Fills data into the sum formula table.
         """
@@ -523,7 +523,7 @@ class StructureTable():
         result = self.database.db_request(req, [structure_id] + list(formula.values()))
         return result
 
-    def get_calc_sum_formula(self, structure_id: int) -> dict:
+    def get_calc_sum_formula(self, structure_id):
         """
         Returns the sum formula of an entry as dictionary.
 
@@ -777,7 +777,7 @@ class StructureTable():
         """
         return ', '.join(['?'] * len(items))
 
-    def get_cells_as_list(self, structure_ids: list):
+    def get_cells_as_list(self, structure_ids):
         """
         Returns a list of unit cells from the list of input ids.
         >>> db = StructureTable('./test-data/test.sql')
@@ -827,7 +827,7 @@ class StructureTable():
             # print("Wrong volume for cell search.")
             return False
 
-    def find_by_strings(self, text: str) -> tuple:
+    def find_by_strings(self, text):
         """
         Searches cells with volume between upper and lower limit
         :param text: Volume uncertaincy where to search
@@ -854,7 +854,7 @@ class StructureTable():
             return tuple([])
         return ids
 
-    def find_by_it_number(self, number: int) -> list:
+    def find_by_it_number(self, number):
         """
         Find structures by space group number in international tables of
         crystallography.
@@ -876,7 +876,7 @@ class StructureTable():
         else:
             return []
 
-    def find_by_elements(self, elements: list, excluding: list = None, onlyincluded: bool = False) -> list:
+    def find_by_elements(self, elements, excluding = None, onlyincluded = False):
         """
         Find structures where certain elements are included in the sum formula.
 

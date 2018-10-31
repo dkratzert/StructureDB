@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 py36 = False
 py34 = False
@@ -22,7 +23,7 @@ atoms = ('D', 'H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg',
          'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa',
          'U')
 
-celltxt = """
+celltxt = r"""
    <html><head/><body>
    <table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" 
           cellspacing="1" cellpadding="1">

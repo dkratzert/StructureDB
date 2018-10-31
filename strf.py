@@ -19,8 +19,6 @@ import webbrowser
 from os.path import isfile
 from sqlite3 import DatabaseError, ProgrammingError
 
-from PyQt5.QtCore import QModelIndex
-
 from displaymol.sdm import SDM
 from p4pfile.p4p_reader import P4PFile, read_file_to_list
 from shelxfile.misc import chunks
@@ -29,20 +27,15 @@ from shelxfile.shelx import ShelXFile
 DEBUG = False
 import math
 import os
-import pathlib
 import shutil
 import sys
 import tempfile
 import time
 from datetime import date
 
-from PyQt5 import QtWidgets, QtCore, QtGui, uic
-
-import misc.update_check
 from apex import apeximporter
 from displaymol import mol_file_writer, write_html
 from lattice import lattice
-from misc import update_check
 from misc.version import VERSION
 from pymatgen.core import mat_lattice
 from searcher import constants, misc, filecrawler, database_handler
@@ -57,13 +50,14 @@ if platform.system() == 'Windows':
 try:
     from xml.etree.ElementTree import ParseError
     from ccdc.query import get_cccsd_path, search_csd, parse_results
-except ModuleNotFoundError:
+except Exception as e:
+    print(e)
     pass
 
 if py36:
     """Only import this if Python 3.6 is used."""
     try:
-        from PyQt5.QtWebEngineWidgets import QWebEngineView
+        from PyQt4.QtWebEngineWidgets import QWebEngineView
     except Exception as e:
         print(e, '#')
         if DEBUG:
@@ -92,9 +86,9 @@ else:
     application_path = os.path.dirname(os.path.abspath(__file__))
 
 
-class StartStructureDB(QtWidgets.QMainWindow):
+class StartStructureDB(QMainWindow):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(StartStructureDB, self).__init__(*args, **kwargs)
         self.ui = Ui_stdbMainwindow()
         self.ui.setupUi(self)
         self.statusBar().showMessage('StructureFinder version {}'.format(VERSION))
@@ -162,9 +156,6 @@ class StartStructureDB(QtWidgets.QMainWindow):
                     print(e)
                     if DEBUG:
                         raise
-        if update_check.is_update_needed(VERSION=VERSION):
-            self.statusBar().showMessage('A new Version of StructureFinder is available at '
-                                         'https://www.xs3.uni-freiburg.de/research/structurefinder')
         # select the first item in the list
         item = self.ui.cifList_treeWidget.topLevelItem(0)
         self.ui.cifList_treeWidget.setCurrentItem(item)
@@ -220,7 +211,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
     def on_click_item(self, item):
         self.ui.MaintabWidget.setCurrentIndex(1)
 
-    def show_csdentry(self, item: QModelIndex):
+    def show_csdentry(self, item):
         sel = self.ui.CSDtreeWidget.selectionModel().selection()
         try:
             identifier = sel.indexes()[8].data()
@@ -254,7 +245,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
             self.search_for_cif_cell(final_path)
 
     @staticmethod
-    def validate_sumform(inelem: list):
+    def validate_sumform(inelem):
         """
         Checks if the elements in inelem are valid Chemical elements
         """
@@ -429,7 +420,8 @@ class StartStructureDB(QtWidgets.QMainWindow):
         else:
             self.display_structures_by_idlist(list(results))
 
-    def display_structures_by_idlist(self, idlist: list or set) -> None:
+    def display_structures_by_idlist(self, idlist):
+        #type: (list) -> None
         """
         Displays the structures with id in results list
         """
@@ -453,7 +445,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
         """
         d = QtWidgets.QDialog()
         self.passwd = self.uipass.setupUi(d)
-        ip_dialog = d.exec()
+        ip_dialog = d.execute()
         if ip_dialog == 1:  # Accepted
             self.import_apex_db(user=self.uipass.userNameLineEdit.text(),
                                 password=self.uipass.PasswordLineEdit.text(),
@@ -508,7 +500,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
         # self.ui.cifList_treeWidget.sortByColumn(0, 0)
         self.abort_import_button.hide()
 
-    def progressbar(self, curr: int, min: int, max: int) -> None:
+    def progressbar(self, curr, min, max):
         """
         Displays a progress bar in the status bar.
         """
@@ -520,7 +512,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
             self.progress.hide()
 
     @QtCore.pyqtSlot(name="close_db")
-    def close_db(self, copy_on_close: str = None) -> bool:
+    def close_db(self, copy_on_close):
         """
         Closed the current database and erases the list.
         :param copy_on_close: Path to where the file should be copied after close()
@@ -588,7 +580,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
         self.structureId = structure_id
         return True
 
-    def save_database(self) -> bool:
+    def save_database(self):
         """
         Saves the database to a certain file. Therefore I have to close the database.
         """
@@ -625,7 +617,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
             if DEBUG:
                 raise
 
-    def display_properties(self, structure_id: str, cif_dic: dict) -> bool:
+    def display_properties(self, structure_id, cif_dic):
         """
         Displays the residuals from the cif file
         Measured Refl.
@@ -753,7 +745,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
         self.ui.allCifTreeWidget.resizeColumnToContents(1)
         return True
 
-    def display_molecule(self, cell: list, structure_id: str) -> None:
+    def display_molecule(self, cell, structure_id):
         """
         Creates a html file from a mol file to display the molecule in jsmol-lite
         """
@@ -788,7 +780,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
         self.view.reload()
 
     @QtCore.pyqtSlot('QString')
-    def find_dates(self, date1: str, date2: str) -> list:
+    def find_dates(self, date1, date2):
         """
         Returns a list if id between date1 and date2
         """
@@ -800,7 +792,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
         return result
 
     @QtCore.pyqtSlot('QString')
-    def search_text(self, search_string: str) -> bool:
+    def search_text(self, search_string):
         """
         searches db for given text
         """
@@ -830,7 +822,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
         except Exception:
             self.statusBar().showMessage("Nothing found.")
 
-    def search_cell_idlist(self, cell: list) -> list:
+    def search_cell_idlist(self, cell):
         """
         Searches for a unit cell and resturns a list of found database ids.
         This method does not validate the cell. This has to be done before!
@@ -883,7 +875,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
         return idlist2
 
     @QtCore.pyqtSlot('QString', name='search_cell')
-    def search_cell(self, search_string: str) -> bool:
+    def search_cell(self, search_string):
         """
         searches db for given cell via the cell volume
         """
@@ -924,7 +916,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
         # self.ui.cifList_treeWidget.resizeColumnToContents(0)
         return True
 
-    def search_elements(self, elements: str, excluding: str, onlythese: bool = False) -> list:
+    def search_elements(self, elements, excluding, onlythese = False):
         """
         list(set(l).intersection(l2))
         """
@@ -946,7 +938,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
             pass
         return list(res)
 
-    def add_table_row(self, name: str, path: str, data: bytes, structure_id: str) -> None:
+    def add_table_row(self, name, path, data, structure_id):
         """
         Adds a line to the search results table.
         """
@@ -963,7 +955,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
         tree_item.setData(3, 0, structure_id)  # id
         self.ui.cifList_treeWidget.addTopLevelItem(tree_item)
 
-    def import_cif_database(self) -> bool:
+    def import_cif_database(self):
         """
         Import a new database.
         """
@@ -989,7 +981,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
             return False
         return True
 
-    def open_apex_db(self, user: str, password: str, host: str) -> bool:
+    def open_apex_db(self, user, password, host):
         """
         Opens the APEX db to be displayed in the treeview.
         """
@@ -1077,7 +1069,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
             time.sleep(0.05)
             self.statusBar().showMessage("{}{}".format(' ' * s, message))
 
-    def import_apex_db(self, user: str = '', password: str = '', host: str = '') -> None:
+    def import_apex_db(self, user = '', password = '', host = ''):
         """
         Imports data from apex into own db
         """
@@ -1160,7 +1152,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
         # self.ui.cifList_treeWidget.resizeColumnToContents(0)
         # self.ui.cifList_treeWidget.resizeColumnToContents(1)
 
-    def show_full_list(self) -> None:
+    def show_full_list(self):
         """
         Displays the complete list of structures
         [structure_id, meas, path, filename, data]
@@ -1193,7 +1185,7 @@ class StartStructureDB(QtWidgets.QMainWindow):
         self.ui.dateEdit1.setDate(QtCore.QDate(date.today()))
         self.ui.dateEdit2.setDate(QtCore.QDate(date.today()))
 
-    def clear_fields(self) -> None:
+    def clear_fields(self):
         """
         Clears all residuals fields.
         """

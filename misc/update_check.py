@@ -13,7 +13,7 @@ from __future__ import print_function
 
 urlprefix = "https://www.xs3-data.uni-freiburg.de/structurefinder"
 
-from urllib.request import FancyURLopener
+from urllib import FancyURLopener
 
 
 

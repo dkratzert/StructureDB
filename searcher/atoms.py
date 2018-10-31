@@ -457,7 +457,7 @@ element2cov = {
     'D':  0.5
 }
 
-def get_radius(atomic_number: int) -> float:
+def get_radius(atomic_number):
     """
     Get the covalent radius in pm for the element.
 
@@ -467,7 +467,7 @@ def get_radius(atomic_number: int) -> float:
     return num2covradius[atomic_number]
 
 
-def get_radius_from_element(element: str) -> float:
+def get_radius_from_element(element):
     """
     Returns the radius of an atom by its element name.
 
@@ -477,7 +477,7 @@ def get_radius_from_element(element: str) -> float:
     return element2cov[element.capitalize()]
 
 
-def get_atomic_number(element: str) -> int:
+def get_atomic_number(element):
     """
     returns the atomic number from the element symbol
 
@@ -487,7 +487,7 @@ def get_atomic_number(element: str) -> int:
     return element2num[element]
 
 
-def get_element(atomic_number: int) -> str:
+def get_element(atomic_number):
     """
     returns the element symbol from the atomic number
 
@@ -497,7 +497,7 @@ def get_element(atomic_number: int) -> str:
     return num2element[atomic_number]
 
 
-def get_atomlabel(input_atom: str) -> str:
+def get_atomlabel(input_atom):
     """
     converts an atom name like C12 to the element symbol C.
 

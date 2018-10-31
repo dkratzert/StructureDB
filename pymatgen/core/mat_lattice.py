@@ -348,8 +348,7 @@ class Lattice(object):
         return Lattice([vector_a, vector_b, vector_c])
 
     @staticmethod
-    def from_parameters_niggli_reduced(a: float, b: float, c: float,
-                                       alpha: float, beta: float, gamma: float):
+    def from_parameters_niggli_reduced(a, b, c, alpha, beta, gamma):
         """
         Returns the niggli reduced lattice of
         """

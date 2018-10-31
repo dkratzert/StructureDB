@@ -37,7 +37,7 @@ elements = ['X', 'H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne',
             'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es']
 
 
-def write_file(list: list, name: str) -> None:
+def write_file(list, name):
     """
     Writes the content of list to name.
     :param list: list
@@ -48,7 +48,7 @@ def write_file(list: list, name: str) -> None:
             ofile.write("%s" % line)  # write the new file
 
 
-def find_binary_string(file, string: str, seek, size, return_ascii=False):
+def find_binary_string(file, string, seek, size, return_ascii=False):
     """
     finds a string in a binary file
     :rtype: str
@@ -105,7 +105,7 @@ def walkdir(rootdir, include=None, exclude=None):
     return results
 
 
-def open_file_read(filename: str, asci: bool = True) -> str or list:
+def open_file_read(filename, asci = True):
     if asci:
         state = 'r'
     else:
@@ -148,7 +148,7 @@ def is_a_nonzero_file(filename):
     return status
 
 
-def get_error_from_value(value: str) -> tuple:
+def get_error_from_value(value):
     """ 
     Returns the error value from a number string.
     :type value: str
@@ -183,7 +183,7 @@ def get_error_from_value(value: str) -> tuple:
             return 0.0, 0.0
 
 
-def flatten(lis: list) -> list:
+def flatten(lis):
     """
     Given a list, possibly nested to any level, return it flattened.
     From: http://code.activestate.com/recipes/578948-flattening-an-arbitrarily-nested-list-in-python/
@@ -197,8 +197,7 @@ def flatten(lis: list) -> list:
     return new_lis
 
 
-def distance(x1: float, y1: float, z1: float,
-             x2: float, y2: float, z2: float) -> float:
+def distance(x1, y1, z1, x2, y2, z2):
     """
     distance between two points in space for orthogonal axes.
     >>> distance(1, 1, 1, 2, 2, 2)
@@ -209,7 +208,7 @@ def distance(x1: float, y1: float, z1: float,
     return sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2)
 
 
-def format_sum_formula(sumform: dict, break_after: int = 99) -> str:
+def format_sum_formula(sumform, break_after = 99):
     """
     Makes html formated sum formula from dictionary.
     >>> format_sum_formula({'C': 12, 'H': 6, 'O': 3, 'Mn': 7})
@@ -243,7 +242,7 @@ def format_sum_formula(sumform: dict, break_after: int = 99) -> str:
     return formula
 
 
-def formula_dict_to_str(formula: dict):
+def formula_dict_to_str(formula):
     """
     Converts a sum formula from a dictionary like {'C': 12, 'H': 6, 'O': 3} to a
     string like C12 H6 O3
@@ -255,7 +254,7 @@ def formula_dict_to_str(formula: dict):
     return formstr
 
 
-def formula_dict_to_elements(formula: dict):
+def formula_dict_to_elements(formula):
     """
     Converts a sum formula from a dictionary like {'C': 12, 'H': 6, 'O': 3} to a
     string like C H O.
@@ -266,7 +265,7 @@ def formula_dict_to_elements(formula: dict):
     return formstr
 
 
-def formula_str_to_dict(sumform: str or bytes) -> dict:
+def formula_str_to_dict(sumform):
     """
     converts an atom name like C12 to the element symbol C
     Use this code to find the atoms while going through the character astream of a sumformula
@@ -333,7 +332,7 @@ def formula_str_to_dict(sumform: str or bytes) -> dict:
     return atlist
 
 
-def get_list_of_elements(formula: str) -> list:
+def get_list_of_elements(formula):
     """
     >>> get_list_of_elements("SCl")
     ['S', 'Cl']
@@ -411,7 +410,7 @@ def copy_file(source, target, move=False):
         print(e)
 
 
-def is_valid_cell(cell: str = None) -> list:
+def is_valid_cell(cell = None):
     """
     Checks is a unit cell is valid
     """

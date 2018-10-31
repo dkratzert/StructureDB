@@ -53,17 +53,17 @@ class Array(object):
     """
     __slots__ = ['values']
 
-    def __init__(self, values: list):
+    def __init__(self, values):
         self.values = values
 
-    def __iter__(self) -> iter:
+    def __iter__(self):
         for v in self.values:
             yield v
 
-    def __len__(self) -> int:
+    def __len__(self):
         return len(self.values)
 
-    def __add__(self, other: (list, 'Array')) -> 'Array':
+    def __add__(self, other):
         """
         This method is optimized for speed.
         >>> a = Array([1, 2, 3])
@@ -124,7 +124,7 @@ class Array(object):
         else:
             raise TypeError('Unsupported operation.')
 
-    def __mul__(self, other: ('Array', 'Matrix')) -> (float, 'Array'):
+    def __mul__(self, other):
         """
         a * b = axbx + ayby + azbz
 
@@ -186,7 +186,7 @@ class Array(object):
         return sqrt(self.norm())
 
     @staticmethod
-    def zero(m: int) -> 'Array':
+    def zero(m):
         """
         Create zero Array of dimension m
 
@@ -196,7 +196,7 @@ class Array(object):
         return Array([0.0 for row in range(m)])
 
     @staticmethod
-    def randarray(m: int) -> 'Array':
+    def randarray(m):
         """
         Create zero Array of dimension m
 
@@ -209,7 +209,7 @@ class Array(object):
     def floor(self):
         return Array([floor(x) for x in self.values])
 
-    def dot(self, other: 'Array') -> float:
+    def dot(self, other):
         """
         Dot product of an array in kartesian space.
         """
@@ -217,7 +217,7 @@ class Array(object):
             raise ValueError('Vector sizes must match')
         return sum([i * j for i, j in zip(self, other)])
 
-    def cross(self, other: 'Array') -> 'Array':
+    def cross(self, other):
         """
         Cross product of the Array (currently only for 3D vectors).
 
@@ -232,7 +232,7 @@ class Array(object):
         b1, b2, b3 = other
         return Array([(a2 * b3 - a3 * b2), (a3 * b1 - a1 * b3), (a1 * b2 - a2 * b1)])
 
-    def angle(self, other: 'Array') -> float:
+    def angle(self, other):
         """
         Calculates the angle between two vectors.
         >>> a = Array([1, 0, 1])
@@ -305,7 +305,7 @@ class Matrix(object):
             rows += '|' + ' '.join(['{:>7.3f}'.format(float(x)) for x in row]) + '|' + '\n'
         return rows
 
-    def __add__(self, other: (list, 'Matrix')) -> 'Matrix':
+    def __add__(self, other):
         """
         Matrix addition
 
@@ -334,7 +334,7 @@ class Matrix(object):
         else:
             raise TypeError('Cannot add type {} Array to Matrix.'.format(str(type(other))))
 
-    def __mul__(self, other: ('Matrix', 'Array', int, float)) -> ('Matrix', 'Array'):
+    def __mul__(self, other):
         """
         a * b operation
         >>> m = Matrix([[1, 1, 1], [1, 1, 1], [1, 1, 1]])
@@ -372,7 +372,7 @@ class Matrix(object):
     def __len__(self):
         return self.shape[1]
 
-    def __iter__(self) -> list:
+    def __iter__(self):
         return [n for n in self.values]
 
     def __eq__(self, other):
@@ -417,7 +417,7 @@ class Matrix(object):
     def T(self):
         return self.transpose()
 
-    def transpose(self) -> 'Matrix':
+    def transpose(self):
         """
         transposes a matrix
 
@@ -450,7 +450,7 @@ class Matrix(object):
         return Matrix(newA)
 
     @staticmethod
-    def zero(m: int, n: int) -> 'Matrix':
+    def zero(m, n):
         """
         Create zero matrix of dimension m,n
 
@@ -465,7 +465,7 @@ class Matrix(object):
         return Matrix([[0.0 for row in range(n)] for col in range(m)])
 
     @staticmethod
-    def randmat(m: int, n: int) -> 'Matrix':
+    def randmat(m, n):
         """
         Create random matrix of dimension m, n
 
@@ -479,7 +479,7 @@ class Matrix(object):
         """
         return Matrix([[random.randint(1, 9) for y in range(n)] for x in range(m)])
 
-    def cholesky(self) -> 'Matrix':
+    def cholesky(self):
         """
         >>> m = Matrix([[25, 15, -5], [15, 18,  0], [-5,  0, 11]])
         >>> m.cholesky()
@@ -702,7 +702,7 @@ class SymmetryElement(object):
 ##### End of work by Jens Lübben #############
 
 
-def my_isnumeric(value: str):
+def my_isnumeric(value):
     """
     Determines if a string can be converted to a number.
     """
@@ -831,7 +831,7 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
 
-def atomic_distance(p1: list, p2: list, cell=None, shortest_dist=False):
+def atomic_distance(p1, p2, cell=None, shortest_dist=False):
     """
     p1 and p2 are x, y , z coordinates as list ['x', 'y', 'z']
     cell are the cell parameters as list: ['a', 'b', 'c', 'alpha', 'beta', 'gamma']
@@ -1116,7 +1116,7 @@ class A(object):
                        [0, 0, self.V / (self.a * self.b * sin(self.gamma))]])
 
 
-def calc_ellipsoid_axes(coords: list, uvals: list, cell: list, probability: float = 0.5, longest: bool = True):
+def calc_ellipsoid_axes(coords, uvals, cell, probability = 0.5, longest = True):
     """
     This method calculates the principal axes of an ellipsoid as list of two
     fractional coordinate triples.
@@ -1273,7 +1273,7 @@ def almost_equal(a, b, places=3):
     return round(abs(a - b), places) == 0
 
 
-def frac_to_cart(frac_coord: list, cell: list) -> list:
+def frac_to_cart(frac_coord, cell):
     """
     Converts fractional coordinates to cartesian coodinates
     :param frac_coord: [float, float, float]
@@ -1297,7 +1297,7 @@ def frac_to_cart(frac_coord: list, cell: list) -> list:
     return [xc, yc, zc]
 
 
-def cart_to_frac(cart_coord: list, cell: list) -> tuple:
+def cart_to_frac(cart_coord, cell):
     """
     converts cartesian coordinates to fractional coordinates
     :param cart_coord: [float, float, float]

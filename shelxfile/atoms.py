@@ -20,7 +20,7 @@ class Atoms():
         self.shx = shx
         self.all_atoms = []
 
-    def append(self, atom: 'Atom') -> None:
+    def append(self, atom):
         """
         Adds a new atom to the list of atoms. Using append is essential.
         """
@@ -39,10 +39,10 @@ class Atoms():
     def __iter__(self):
         return iter(x for x in self.all_atoms)
 
-    def __getitem__(self, item: int) -> 'Atom':
+    def __getitem__(self, item):
         return self.get_atom_by_id(item)
 
-    def __len__(self) -> int:
+    def __len__(self):
         return len(self.all_atoms)
 
     def __delitem__(self, key):
@@ -64,7 +64,7 @@ class Atoms():
         return dict((atom.fullname, atom) for atom in self.all_atoms)
 
     @property
-    def number(self) -> int:
+    def number(self):
         """
         The number of atoms in the current SHELX file.
         >>> from shelxfile.shelx import ShelXFile
@@ -74,7 +74,7 @@ class Atoms():
         """
         return len(self.all_atoms)
 
-    def get_atom_by_id(self, aid: int) -> 'Atom':
+    def get_atom_by_id(self, aid):
         """
         Returns the atom objext with atomId id.
         """
@@ -82,7 +82,7 @@ class Atoms():
             if aid == a.atomid:
                 return a
 
-    def has_atom(self, atom_name: str) -> bool:
+    def has_atom(self, atom_name):
         """
         Returns true if shelx file has atom.
 
@@ -102,7 +102,7 @@ class Atoms():
         else:
             return False
 
-    def get_atom_by_name(self, atom_name: str) -> 'Atom' or None:
+    def get_atom_by_name(self, atom_name):
         """
         Returns an Atom object using an atom name with residue number like C1, C1_0, F2_4, etc.
         C1 means atom C1 in residue 0.
@@ -141,7 +141,7 @@ class Atoms():
                 return None
         return atoms
 
-    def get_all_atomcoordinates(self) -> dict:
+    def get_all_atomcoordinates(self):
         """
         Returns a dictionary {'C1': ['1.123', '0.7456', '3.245'], 'C2_2': ...}
         >>> from shelxfile.shelx import ShelXFile
@@ -157,7 +157,7 @@ class Atoms():
             atdict[at.name.upper() + '_' + str(at.resinum)] = at.frac_coords
         return atdict
 
-    def get_frag_fend_atoms(self) -> list:
+    def get_frag_fend_atoms(self):
         """
         Returns a list of atoms with cartesian coordinates. Atom names and sfac are ignored. They come from AFIX 17x.
         [[0.5316439256202359, 7.037351406500001, 10.112963255220803],
@@ -170,7 +170,7 @@ class Atoms():
         return atoms
 
     @property
-    def residues(self) -> list:
+    def residues(self):
         """
         Returns a list of the residue numbers in the shelx file.
         >>> from shelxfile.shelx import ShelXFile
@@ -181,7 +181,7 @@ class Atoms():
         return list(set([x.resinum for x in self.all_atoms]))
 
     @property
-    def q_peaks(self) -> list:
+    def q_peaks(self):
         r"""
         Returns a list of q-peaks in the file.
         >>> from shelxfile.shelx import ShelXFile
@@ -191,7 +191,7 @@ class Atoms():
         """
         return [x for x in self.all_atoms if x.qpeak]
 
-    def distance(self, atom1: str, atom2: str) -> float:
+    def distance(self, atom1, atom2):
         """
         Calculates the (shortest) distance of two atoms given as text names e.g. C1_3.
         >>> from shelxfile.shelx import ShelXFile
@@ -208,7 +208,7 @@ class Atoms():
         except AttributeError:
             return 0.0
 
-    def angle(self, at1: 'Atom', at2: 'Atom', at3: 'Atom') -> float:
+    def angle(self, at1, at2, at3):
         """
         Calculates the angle between three atoms.
 
@@ -227,7 +227,7 @@ class Atoms():
         vec2 = ac2 - ac3
         return vec1.angle(vec2)
 
-    def torsion_angle(self, at1: 'Atom', at2: 'Atom', at3: 'Atom', at4: 'Atom') -> float:
+    def torsion_angle(self, at1, at2, at3, at4):
         """
         Calculates the torsion angle (dieder angle) between four atoms.
 
@@ -269,7 +269,7 @@ class Atoms():
                     sqrt(b[0] * b[0] + b[1] * b[1] + b[2] * b[2])))
         return degrees(ang) if direction > 0 else degrees(-ang)
 
-    def atoms_in_class(self, name: str) -> list:
+    def atoms_in_class(self, name):
         """
         Returns a list of atoms in residue class 'name'
         >>> from shelxfile.shelx import ShelXFile
@@ -298,7 +298,7 @@ class Atom():
     _qpeakstr = '{:<5.5s} {:<3}{:>8.4f}  {:>8.4f}  {:>8.4f}  {:>9.5f}  {:<9.2f} {:<9.2f}'
     _fragatomstr = '{:<5.5s} {:>10.6f}  {:>10.6f}  {:>9.6f}'
 
-    def __init__(self, shx) -> None:
+    def __init__(self, shx):
         self.shx = shx
         self.cell = shx.cell
         self.sfac_num = None
@@ -330,7 +330,7 @@ class Atom():
         self.symmgen = False
 
     @property
-    def atomid(self) -> int:
+    def atomid(self):
         if self.symmgen:
             return 0
         try:
@@ -339,29 +339,29 @@ class Atom():
             return 0
 
     @property
-    def fullname(self) -> str:
+    def fullname(self):
         return self.name + '_' + str(self.resinum)  # Name including residue nimber like "C1_2"
 
     @property
-    def resiclass(self) -> str:
+    def resiclass(self):
         return self.resi.residue_class
 
     @property
-    def resinum(self) -> int:
+    def resinum(self):
         return self.resi.residue_number
 
     @property
-    def chain_id(self) -> str:
+    def chain_id(self):
         return self.resi.chainID
 
     @property
-    def fvar(self) -> int:
+    def fvar(self):
         # Be aware: fvar can be negative!
         fvar, _ = split_fvar_and_parameter(self.sof)
         return fvar
 
     @property
-    def occupancy(self) -> float:
+    def occupancy(self):
         # Only the occupancy of the atom like 0.5 (without the free variable)
         _, occ = split_fvar_and_parameter(self.sof)
         # Fractional occupancy:
@@ -385,11 +385,11 @@ class Atom():
         return occ
 
     @occupancy.setter
-    def occupancy(self, occ: float):
+    def occupancy(self, occ):
         self._occupancy = occ
 
     @property
-    def ishydrogen(self) -> bool:
+    def ishydrogen(self):
         """
         Returns True if the current atom is a hydrogen isotope.
         """
@@ -398,9 +398,9 @@ class Atom():
         else:
             return False
 
-    def set_atom_parameters(self, name: str = 'C', sfac_num: int = 1, coords: list = None, part: PART = None,
-                            afix: AFIX = None, resi: RESI = None, site_occupation: float = 11.0, uvals: list = None,
-                            symmgen: bool = True):
+    def set_atom_parameters(self, name = 'C', sfac_num = 1, coords = None, part = None,
+                            afix = None, resi = None, site_occupation = 11.0, uvals = None,
+                            symmgen = True):
         """
         Sets atom properties manually if not parsed from a SHELXL file.
         """
@@ -416,7 +416,7 @@ class Atom():
         self.uvals = uvals
         self.symmgen = symmgen
 
-    def set_uvals(self, uvals: list):
+    def set_uvals(self, uvals):
         """
         Sets u values and checks if a free variable was used.
         """
@@ -432,7 +432,7 @@ class Atom():
                 fvar, uval = split_fvar_and_parameter(uvals[0])
                 self.shx.fvars.set_fvar_usage(fvar)
 
-    def parse_line(self, atline: list, list_of_lines: list, part: PART, afix: AFIX, resi: RESI):
+    def parse_line(self, atline, list_of_lines, part, afix, resi):
         """
         Parsers the text line of an atom from SHELXL to initialize the atom parameters.
         """
@@ -487,7 +487,7 @@ class Atom():
         #self.shx.fvars.set_fvar_usage(self.fvar)
 
     @property
-    def element(self) -> str:
+    def element(self):
         """
         >>> from shelxfile.shelx import ShelXFile
         >>> shx = ShelXFile('test-data/p21c.res')
@@ -509,14 +509,14 @@ class Atom():
         return elements.get_atomic_number(self.element)
 
     @element.setter
-    def element(self, new_element: str) -> None:
+    def element(self, new_element) :
         """
         Sets the element type of an atom.
         """
         self.sfac_num = self.shx.elem2sfac(new_element)
 
     @property
-    def radius(self) -> float:
+    def radius(self):
         """
         Returns the atomic covalence radius in angstrom.
         """
@@ -526,10 +526,10 @@ class Atom():
         for x in self.__repr__().split():
             yield x
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return 'Atom ID: ' + str(self.atomid)
 
-    def __str__(self) -> str:
+    def __str__(self):
         """
         Returns a text line of the Atom with SHELXL syntax.
         :return: SHELX-formated atom string
@@ -573,14 +573,14 @@ class Atom():
         return self.shx.index_of(self)
 
     @property
-    def frac_coords(self, rounded=False) -> tuple:
+    def frac_coords(self, rounded=False):
         if rounded:
             return (round(self.x, 14), round(self.y, 14), round(self.z, 14))
         else:
             return (self.x, self.y, self.z)
 
     @frac_coords.setter
-    def frac_coords(self, coords: list):
+    def frac_coords(self, coords):
         self.x, self.y, self.z = coords
 
     @property
@@ -602,7 +602,7 @@ class Atom():
         """
         del self.shx.atoms[self.index]
 
-    def to_isotropic(self) -> None:
+    def to_isotropic(self):
         """
         Makes the current atom isotropic.
         """
@@ -621,7 +621,7 @@ class Atom():
             return False
     '''
 
-    def find_atoms_around(self, dist=1.2, only_part=0) -> list:
+    def find_atoms_around(self, dist=1.2, only_part=0):
         """
         Finds atoms around the current atom.
         >>> from shelxfile.shelx import ShelXFile

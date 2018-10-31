@@ -14,7 +14,6 @@ Created on 09.02.2015
 """
 import fnmatch
 import os
-import pathlib
 import re
 import sys
 import tarfile
@@ -41,7 +40,7 @@ excluded_names = ['ROOT',
 
 
 class MyZipBase(object):
-    def __init__(self, filepath: str) -> None:
+    def __init__(self, filepath):
         self.filepath = filepath
         self.cifname = ''
         self.cifpath = ''
@@ -52,9 +51,9 @@ class MyZipReader(MyZipBase):
         """
         extracts .cif files from zip files
         """
-        super().__init__(filepath)
+        super(MyZipReader, self).__init__(filepath)
 
-    def __iter__(self) -> list:
+    def __iter__(self):
         """
         returns an iterator of cif files in the zipfile as list.
         """
@@ -76,9 +75,9 @@ class MyTarReader(MyZipBase):
         """
         extracts .cif files from tar.gz files
         """
-        super().__init__(filepath)
+        super(MyTarReader, self).__init__(filepath)
 
-    def __iter__(self) -> list:
+    def __iter__(self):
         """
         returns an iterator of cif files in the zipfile as list.
         """
@@ -108,7 +107,7 @@ def create_file_list(searchpath='None', ending='cif'):
     return paths
 
 
-def filewalker_walk(startdir: str, patterns: list):
+def filewalker_walk(startdir, patterns):
     """
     walks through the filesystem starting from startdir and searches
     for files with ending endings.
@@ -140,8 +139,8 @@ def filewalker_walk(startdir: str, patterns: list):
     return filelist
 
 
-def put_files_in_db(self=None, searchpath: str = './', excludes: list = None, lastid: int = 1,
-                    structures=None, fillcif=True, fillres=True) -> int:
+def put_files_in_db(self=None, searchpath = './', excludes = None, lastid = 1,
+                    structures=None, fillcif=True, fillres=True):
     """
     Imports files from a certain directory
     :param fillres: Should it index res files or not.
@@ -289,8 +288,8 @@ def put_files_in_db(self=None, searchpath: str = './', excludes: list = None, la
     return lastid-1
 
 
-def fill_db_tables(cif: fileparser.Cif, filename: str, path: str, structure_id: str,
-                   structures: database_handler.StructureTable):
+def fill_db_tables(cif, filename, path, structure_id,
+                   structures):
     """
     Fill all info from cif file into the database tables
     _atom_site_label
@@ -375,8 +374,7 @@ def fill_db_tables(cif: fileparser.Cif, filename: str, path: str, structure_id: 
     return True
 
 
-def fill_db_with_res_data(res: ShelXFile, filename: str, path: str, structure_id: str,
-                          structures: database_handler.StructureTable, options: dict):
+def fill_db_with_res_data(res, filename, path, structure_id, structures, options):
     if not res.cell:
         return False
     if not all([res.cell.a, res.cell.b, res.cell.al, res.cell.be, res.cell.ga]):
