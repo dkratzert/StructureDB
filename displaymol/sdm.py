@@ -138,7 +138,7 @@ class SDM():
 
     def calc_sdm(self):
         t1 = time.perf_counter()
-        self.bondlist.clear()
+        self.bondlist = []
         for i, at1 in enumerate(self.atoms):
             prime_array = [Array(at1[2:5]) * symop.matrix + symop.trans for symop in self.symmcards]
             for j, at2 in enumerate(self.atoms):
