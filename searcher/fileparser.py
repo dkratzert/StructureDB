@@ -144,7 +144,7 @@ class Cif(object):
                 if line[:5] == "loop_":
                     loop = True
                     loop_body = False
-                    loophead_list.clear()
+                    loophead_list = []
                     atkey = ''
                     symm = False
                     continue

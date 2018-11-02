@@ -231,7 +231,7 @@ class DatabaseRequest():
         # The simple tokenizer is best for my purposes (A self-written tokenizer would even be better):
         self.cur.execute("""
             CREATE VIRTUAL TABLE txtsearch USING 
-                    fts4(StructureId    INTEGER, 
+                    fts2(StructureId    INTEGER, 
                          filename       TEXT, 
                          dataname       TEXT, 
                          path           TEXT,
@@ -272,20 +272,13 @@ class DatabaseRequest():
         to insert parameters via "?" into the database request.
         A push request will return the last row-Id.
         A pull request will return the requested rows
-        :param many: Use executemany()
         :param request: sqlite database request like:
                     '''SELECT Structure.cell FROM Structure'''
         :type request: str
         """
-        # TODO: fix this hack
-        many = False
         try:
-            if many:
-                # print(args)
-                self.cur.executemany(request, *args)
-            else:
-                # print(request, args)
-                self.cur.execute(request, *args)
+            # print(request, args)
+            self.cur.execute(request, *args)
             #last_rowid = self.cur.lastrowid
         except OperationalError as e:
             print(e, "\nDB execution error")
@@ -303,10 +296,11 @@ class DatabaseRequest():
         d = {}
         for idx, col in enumerate(cursor.description):
             key = col[0]
-            if isinstance(row[idx], bytes):
-                d[key] = row[idx].decode('utf-8', 'ignore')
-            else:
-                d[key] = row[idx]
+            # TODO: Do I need this in Python2?
+            #if isinstance(row[idx], bytes):
+            #    d[key] = row[idx].decode('utf-8', 'ignore')
+            #else:
+            d[key] = row[idx]
         return d
 
     def __del__(self):
@@ -744,7 +738,13 @@ class StructureTable():
         # setting row_factory to dict for the cif keys:
         self.database.con.row_factory = self.database.dict_factory
         self.database.cur = self.database.con.cursor()
-        dic = self.database.db_fetchone(request, (structure_id,))
+        dic = {}
+        try:
+            dic = self.database.db_fetchone(request, (structure_id,))
+        except (ValueError, sqlite3.InterfaceError) as e:
+            print(e)
+            print('request: ', request)
+            print('structureid: ', structure_id)
         self.database.cur.close()
         # setting row_factory back to regular touple base requests:
         self.database.con.row_factory = None
@@ -763,7 +763,13 @@ class StructureTable():
         # setting row_factory to dict for the cif keys:
         self.database.con.row_factory = self.database.dict_factory
         self.database.cur = self.database.con.cursor()
-        dic = self.database.db_fetchone(request, (structure_id,))
+        dic = {}
+        try:
+            dic = self.database.db_fetchone(request, (structure_id,))
+        except (ValueError, sqlite3.InterfaceError) as e:
+            print(e)
+            print('request: ', request)
+            print('structureid: ', structure_id)
         self.database.cur.close()
         # setting row_factory back to regular touple base requests:
         self.database.con.row_factory = None

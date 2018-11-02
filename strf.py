@@ -17,7 +17,8 @@ from __future__ import print_function
 import platform
 import webbrowser
 from os.path import isfile
-from sqlite3 import DatabaseError, ProgrammingError
+from shutil import _samefile
+from sqlite3 import DatabaseError, ProgrammingError, OperationalError
 from urlparse import urlparse
 
 from PyQt4 import QtCore, uic, QtGui
@@ -463,12 +464,12 @@ class StartStructureDB(QMainWindow):
         Initializes a QWebengine to view the molecule.
         """
         self.view = QWebEngineView()
-        self.view.load(
-            QtCore.QUrl.fromLocalFile(os.path.abspath(os.path.join(application_path, "./displaymol/jsmol.htm"))))
+        path = os.path.abspath(os.path.join(application_path, "./displaymol/jsmol.htm"))
+        self.view.load(QtCore.QUrl.fromLocalFile(path))
         # self.view.setMaximumWidth(260)
         # self.view.setMaximumHeight(290)
         self.ui.ogllayout.addWidget(self.view)
-        # self.view.show()
+        self.view.show()
 
     @QtCore.pyqtSlot(name="cell_state_changed")
     def cell_state_changed(self):
@@ -493,8 +494,16 @@ class StartStructureDB(QMainWindow):
         filecrawler.put_files_in_db(self, searchpath=fname, fillres=self.ui.add_res.isChecked(),
                                     fillcif=self.ui.add_cif.isChecked())
         self.progress.hide()
-        self.structures.database.init_textsearch()
-        self.structures.populate_fulltext_search_table()
+        try:
+            self.structures.database.init_textsearch()
+        except OperationalError as e:
+            print(e)
+            print('No fulltext search module found.')
+        try:
+            self.structures.populate_fulltext_search_table()
+        except OperationalError as e:
+            print(e)
+            print('No fulltext search compiled into sqlite.')
         self.structures.database.commit_db()
         self.ui.cifList_treeWidget.show()
         self.set_columnsize()
@@ -515,7 +524,7 @@ class StartStructureDB(QMainWindow):
             self.progress.hide()
 
     @QtCore.pyqtSlot(name="close_db")
-    def close_db(self, copy_on_close):
+    def close_db(self, copy_on_close=None):
         """
         Closed the current database and erases the list.
         :param copy_on_close: Path to where the file should be copied after close()
@@ -541,7 +550,7 @@ class StartStructureDB(QMainWindow):
         except:
             pass
         if copy_on_close:
-            if samefile(self.dbfilename, copy_on_close):
+            if _samefile(self.dbfilename, copy_on_close):
                 self.statusBar().showMessage("You can not save to the currently opened file!", msecs=5000)
                 return False
             else:
@@ -576,7 +585,7 @@ class StartStructureDB(QMainWindow):
         """
         if not self.structures.database.cur:
             return False
-        structure_id = item.sibling(item.row(), 3).data()
+        structure_id = str(item.sibling(item.row(), 3).data().toString())
         self.structureId = structure_id
         dic = self.structures.get_row_as_dict(structure_id)
         self.display_properties(structure_id, dic)
@@ -644,7 +653,7 @@ class StartStructureDB(QMainWindow):
         try:
             self.display_molecule(cell, structure_id)
         except Exception as e:
-            print(e, "unable to display molecule")
+            print(e, "unable to display molecule!!")
             if DEBUG:
                 raise
         self.ui.cifList_treeWidget.setFocus()
@@ -779,7 +788,8 @@ class StartStructureDB(QMainWindow):
         # print(self.ui.openglview.width()-30, self.ui.openglview.height()-50)
         content = write_html.write(mol, self.ui.openglview.width() - 30, self.ui.openglview.height() - 50)
         p2 = os.path.join(application_path, "./displaymol/jsmol.htm")
-        p2.write_text(data=content, encoding="utf-8", errors='ignore')
+        with open(p2, 'w') as f:
+            f.write(content)
         self.view.reload()
 
     @QtCore.pyqtSlot('QString')
@@ -945,12 +955,12 @@ class StartStructureDB(QMainWindow):
         """
         Adds a line to the search results table.
         """
-        if isinstance(name, bytes):
-            name = name.decode("utf-8", "surrogateescape")
-        if isinstance(path, bytes):
-            path = path.decode("utf-8", "surrogateescape")
-        if isinstance(data, bytes):
-            data = data.decode("utf-8", "surrogateescape")
+        if isinstance(name, (bytes, buffer)):
+            name = str(name)#.decode("utf-8", "surrogateescape")
+        if isinstance(path, (bytes, buffer)):
+            path = str(path)#.decode("utf-8", "surrogateescape")
+        if isinstance(data, (bytes, buffer)):
+            data = str(data)#.decode("utf-8", "surrogateescape")
         tree_item = QTreeWidgetItem()
         tree_item.setText(0, name)  # name
         tree_item.setText(1, data)  # data
@@ -963,13 +973,13 @@ class StartStructureDB(QMainWindow):
         Import a new database.
         """
         self.tmpfile = False
-        #self.close_db()
+        self.close_db()
         fname = QFileDialog.getOpenFileName(self, caption='Open File', directory='./',
                                                       filter="*.sqlite")
-        if not fname[0]:
+        if not fname:
             return False
-        print("Opened {}.".format(fname[0]))
-        self.dbfilename = fname[0]
+        print("Opened {}.".format(fname))
+        self.dbfilename = str(fname)
         self.structures = database_handler.StructureTable(self.dbfilename)
         try:
             self.show_full_list()
@@ -1167,9 +1177,10 @@ class StartStructureDB(QMainWindow):
                 pass
         except TypeError:
             return None
-        for i in self.structures.get_all_structure_names():
-            structure_id = i[0]
-            self.add_table_row(name=i[3], path=i[2], structure_id=i[0], data=i[4])
+        if self.structures:
+            for i in self.structures.get_all_structure_names():
+                structure_id = i[0]
+                self.add_table_row(name=i[3], path=i[2], structure_id=i[0], data=i[4])
         mess = "Loaded {} entries.".format(structure_id)
         self.statusBar().showMessage(mess, msecs=5000)
         self.set_columnsize()
