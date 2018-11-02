@@ -17,12 +17,12 @@ from __future__ import print_function
 import platform
 import webbrowser
 from os.path import isfile
-from shutil import _samefile
 from sqlite3 import DatabaseError, ProgrammingError, OperationalError
 from urlparse import urlparse
 
 from PyQt4 import QtCore, uic, QtGui
 from PyQt4.QtGui import QMainWindow, QPushButton, QProgressBar, QApplication, QFileDialog, QDialog, QTreeWidgetItem
+from PyQt4.QtWebKit import QWebView
 
 from displaymol.sdm import SDM
 from p4pfile.p4p_reader import P4PFile, read_file_to_list
@@ -59,14 +59,6 @@ except Exception as e:
     print(e)
     pass
 
-if py36:
-    """Only import this if Python 3.6 is used."""
-    try:
-        from PyQt4.QtWebEngineWidgets import QWebEngineView
-    except Exception as e:
-        print(e, '#')
-        if DEBUG:
-            raise
 
 __metaclass__ = type  # use new-style classes
 
@@ -130,20 +122,15 @@ class StartStructureDB(QMainWindow):
         # Set both to today() to distinquish between a modified and unmodified date field.
         self.ui.dateEdit1.setDate(QtCore.QDate(date.today()))
         self.ui.dateEdit2.setDate(QtCore.QDate(date.today()))
-        if py36:
-            try:
-                molf = os.path.join(application_path, "./displaymol/jsmol.htm")
-                molf.write_text(data=' ', encoding="utf-8", errors='ignore')
-                self.init_webview()
-            except Exception as e:
-                # Graphics driver not compatible
-                print(e, '##')
-                raise
-        else:
-            self.ui.MaintabWidget.removeTab(2)
-            self.ui.txtSearchEdit.hide()
-            self.ui.txtSearchLabel.hide()
-            self.ui.openglview.hide()
+        try:
+            molf = os.path.join(application_path, "./displaymol/jsmol.htm")
+            with open(molf, 'w') as f:
+                f.write(' ')
+            self.init_webview()
+        except Exception as e:
+            # Graphics driver not compatible
+            print(e, '##')
+            raise
         self.ui.MaintabWidget.setCurrentIndex(0)
         self.setWindowIcon(QtGui.QIcon(os.path.join(application_path, './icons/strf.png')))
         self.uipass = Ui_PasswdDialog()
@@ -463,12 +450,12 @@ class StartStructureDB(QMainWindow):
         """
         Initializes a QWebengine to view the molecule.
         """
-        self.view = QWebEngineView()
+        self.view = QWebView()
         path = os.path.abspath(os.path.join(application_path, "./displaymol/jsmol.htm"))
         self.view.load(QtCore.QUrl.fromLocalFile(path))
         # self.view.setMaximumWidth(260)
         # self.view.setMaximumHeight(290)
-        self.ui.ogllayout.addWidget(self.view)
+        #self.ui.webview.addWidget(self.view)
         self.view.show()
 
     @QtCore.pyqtSlot(name="cell_state_changed")
