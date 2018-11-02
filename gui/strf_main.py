@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\GitHub\StructureFinder\./gui\strf_main.ui'
 #
-# Created: Fri Nov 02 15:12:41 2018
+# Created: Fri Nov 02 15:20:25 2018
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -390,9 +390,6 @@ class Ui_stdbMainwindow(object):
         self.ogllayout.setSpacing(6)
         self.ogllayout.setContentsMargins(1, 5, 1, 1)
         self.ogllayout.setObjectName(_fromUtf8("ogllayout"))
-        self.webview = QtGui.QWidget(self.openglview)
-        self.webview.setObjectName(_fromUtf8("webview"))
-        self.ogllayout.addWidget(self.webview)
         self.importResults.addWidget(self.openglview, 2, 6, 1, 1)
         self.searchLayout = QtGui.QHBoxLayout()
         self.searchLayout.setSizeConstraint(QtGui.QLayout.SetDefaultConstraint)
@@ -1075,7 +1072,7 @@ class Ui_stdbMainwindow(object):
         self.actionGo_to_All_CIF_Tab.setObjectName(_fromUtf8("actionGo_to_All_CIF_Tab"))
 
         self.retranslateUi(stdbMainwindow)
-        self.MaintabWidget.setCurrentIndex(0)
+        self.MaintabWidget.setCurrentIndex(3)
         QtCore.QObject.connect(self.actionExit, QtCore.SIGNAL(_fromUtf8("triggered()")), stdbMainwindow.close)
         QtCore.QMetaObject.connectSlotsByName(stdbMainwindow)
         stdbMainwindow.setTabOrder(self.importDirButton, self.importDatabaseButton)

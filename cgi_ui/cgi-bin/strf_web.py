@@ -314,7 +314,7 @@ def is_ajax():
         return False
 
 
-def get_structures_json(structures: StructureTable, ids: (list, tuple) = None, show_all: bool = False) -> dict:
+def get_structures_json(structures, ids = None, show_all: bool = False) -> dict:
     """
     Returns the next package of table rows for continuos scrolling.
     """

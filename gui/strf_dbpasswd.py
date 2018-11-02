@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\GitHub\StructureFinder\./gui\strf_dbpasswd.ui'
 #
-# Created: Fri Nov 02 15:12:41 2018
+# Created: Fri Nov 02 15:20:25 2018
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!

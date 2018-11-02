@@ -29,7 +29,7 @@ from p4pfile.p4p_reader import P4PFile, read_file_to_list
 from shelxfile.misc import chunks
 from shelxfile.shelx import ShelXFile
 
-DEBUG = False
+DEBUG = True
 import math
 import os
 import shutil
@@ -455,7 +455,7 @@ class StartStructureDB(QMainWindow):
         self.view.load(QtCore.QUrl.fromLocalFile(path))
         # self.view.setMaximumWidth(260)
         # self.view.setMaximumHeight(290)
-        #self.ui.webview.addWidget(self.view)
+        self.ui.ogllayout.addWidget(self.view)
         self.view.show()
 
     @QtCore.pyqtSlot(name="cell_state_changed")

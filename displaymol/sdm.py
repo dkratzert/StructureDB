@@ -17,7 +17,7 @@ from searcher import database_handler
 from searcher.atoms import get_radius_from_element
 from shelxfile.dsrmath import Array, SymmetryElement, Matrix, frac_to_cart
 
-DEBUG = False
+DEBUG = True
 
 class Atom():
     def __init__(self, name, element, x, z, y, part):
@@ -137,10 +137,10 @@ class SDM():
                        [0, 0, self.cell[6] / (self.cell[0] * self.cell[1] * sin(self.cell[5]))]])
 
     def calc_sdm(self):
-        t1 = time.perf_counter()
+        t1 = time.time()
         self.bondlist = []
         for i, at1 in enumerate(self.atoms):
-            prime_array = [Array(at1[2:5]) * symop.matrix + symop.trans for symop in self.symmcards]
+            prime_array = [(Array(at1[2:5]) * symop.matrix) + symop.trans for symop in self.symmcards]
             for j, at2 in enumerate(self.atoms):
                 mind = 1000000
                 hma = False
@@ -180,7 +180,7 @@ class SDM():
                     sdmItem.covalent = False
                 if hma:
                     self.sdm_list.append(sdmItem)
-        t2 = time.perf_counter()
+        t2 = time.time()
         self.sdmtime = t2 - t1
         #if DEBUG:
         print('Time for sdm:', round(self.sdmtime, 3), 's')

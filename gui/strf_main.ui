@@ -248,7 +248,7 @@
        <string notr="true"/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="maintab">
        <attribute name="title">
@@ -855,9 +855,6 @@
              <property name="bottomMargin">
               <number>1</number>
              </property>
-             <item>
-              <widget class="QWidget" name="webview" native="true"/>
-             </item>
             </layout>
            </widget>
           </item>
@@ -1422,9 +1419,6 @@ p, li { white-space: pre-wrap; }
            <spacer name="verticalSpacer_5">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Expanding</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
