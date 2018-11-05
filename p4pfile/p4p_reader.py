@@ -24,7 +24,7 @@ def read_file_to_list(p4pfile):
     p4plist = []
     try:
         with open(p4pfile, 'r') as f:
-            p4plist = f.read().splitlines(keepends=False)
+            p4plist = f.readlines()
     except IOError as e:
         print(e)
         print('*** CANNOT READ FILE {} ***'.format(p4pfile))

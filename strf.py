@@ -212,7 +212,7 @@ class StartStructureDB(QMainWindow):
         webbrowser.open_new_tab('https://www.ccdc.cam.ac.uk/structures/Search?entry_list=' + identifier)
 
     def dragEnterEvent(self, e):
-        if e.mimeData().hasText():
+        if e.mimeData().hasUrls():
             e.accept()
         else:
             e.ignore()
@@ -221,7 +221,8 @@ class StartStructureDB(QMainWindow):
         """
         Handles drop events. 
         """
-        p = urlparse(e.mimeData().text())
+        p = e.mimeData().urls()[0].toString()
+        p = urlparse(str(p))
         if sys.platform.startswith('win'):
             final_path = p.path[1:]  # remove strange / at start
         else:
@@ -250,8 +251,8 @@ class StartStructureDB(QMainWindow):
     def elements_fields_check(self):
         """
         """
-        elem1 = self.ui.ad_elementsIncLineEdit.text().split()
-        elem2 = self.ui.ad_elementsExclLineEdit.text().split()
+        elem1 = str(self.ui.ad_elementsIncLineEdit.text()).split()
+        elem2 = str(self.ui.ad_elementsExclLineEdit.text()).split()
         if (not self.elements_doubled_check(elem1, elem2)) or (not self.elements_doubled_check(elem2, elem1)):
             self.elements_invalid()
         else:
@@ -344,13 +345,13 @@ class StartStructureDB(QMainWindow):
         results = []
         it_results = []
         cell = is_valid_cell(self.ui.ad_unitCellLineEdit.text())
-        date1 = self.ui.dateEdit1.text()
-        date2 = self.ui.dateEdit2.text()
-        elincl = self.ui.ad_elementsIncLineEdit.text().strip(' ')
-        elexcl = self.ui.ad_elementsExclLineEdit.text().strip(' ')
-        txt = self.ui.ad_textsearch.text().strip(' ')
-        txt_ex = self.ui.ad_textsearch_excl.text().strip(' ')
-        spgr = self.ui.SpGrcomboBox.currentText()
+        date1 = str(self.ui.dateEdit1.text())
+        date2 = str(self.ui.dateEdit2.text())
+        elincl = str(self.ui.ad_elementsIncLineEdit.text()).strip(' ')
+        elexcl = str(self.ui.ad_elementsExclLineEdit.text()).strip(' ')
+        txt = str(self.ui.ad_textsearch.text().strip(' '))
+        txt_ex = str(self.ui.ad_textsearch_excl.text()).strip(' ')
+        spgr = str(self.ui.SpGrcomboBox.currentText())
         onlythese = self.ui.onlyTheseElementsCheckBox.isChecked()
         try:
             spgr = int(spgr.split()[0])
@@ -438,9 +439,9 @@ class StartStructureDB(QMainWindow):
         self.passwd = self.uipass.setupUi(d)
         ip_dialog = d.execute()
         if ip_dialog == 1:  # Accepted
-            self.import_apex_db(user=self.uipass.userNameLineEdit.text(),
-                                password=self.uipass.PasswordLineEdit.text(),
-                                host=self.uipass.IPlineEdit.text())
+            self.import_apex_db(user=str(self.uipass.userNameLineEdit.text()),
+                                password=str(self.uipass.PasswordLineEdit.text()),
+                                host=str(self.uipass.IPlineEdit.text()))
         elif ip_dialog == 0:  # reject
             return None
         else:
@@ -463,7 +464,7 @@ class StartStructureDB(QMainWindow):
         """
         Searches a cell but with diffeent loose or strict option.
         """
-        self.search_cell(self.ui.searchCellLineEDit.text())
+        self.search_cell(str(self.ui.searchCellLineEDit.text()))
 
     def import_cif_dirs(self):
         # worker = RunIndexerThread(self)
@@ -537,7 +538,7 @@ class StartStructureDB(QMainWindow):
         except:
             pass
         if copy_on_close:
-            if _samefile(self.dbfilename, copy_on_close):
+            if os.path.samefile(self.dbfilename, copy_on_close):
                 self.statusBar().showMessage("You can not save to the currently opened file!", msecs=5000)
                 return False
             else:
@@ -885,7 +886,7 @@ class StartStructureDB(QMainWindow):
             self.ui.cellSearchCSDLineEdit.setText('  '.join([str(x) for x in cell]))
         self.ui.txtSearchEdit.clear()
         if not cell:
-            if self.ui.searchCellLineEDit.text():
+            if str(self.ui.searchCellLineEDit.text()):
                 self.statusBar().showMessage('Not a valid unit cell!', msecs=3000)
                 return False
             else:
@@ -1046,8 +1047,8 @@ class StartStructureDB(QMainWindow):
         if fname:
             cif = Cif()
             try:
-                cif.parsefile(os.path.abspath(fname).read_text(encoding='utf-8',
-                                                            errors='ignore').splitlines(keepends=True))
+                with open(os.path.abspath(fname), 'r') as f: 
+                    cif.parsefile(f.readlines())
             except Exception:
                 self.moving_message('File not found.')
         else:

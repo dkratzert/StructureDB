@@ -810,7 +810,7 @@ class ShelXFile():
         includefiles = []
         try:
             with open(resfile, 'r') as f:
-                reslist = f.read().splitlines()
+                reslist = f.readlines()
                 for n, line in enumerate(reslist):
                     if line.startswith('+'):
                         try:
@@ -850,7 +850,7 @@ class ShelXFile():
         reslist = []
         try:
             with open(os.path.abspath(resfile), 'r') as f:
-                reslist = f.read().splitlines(keepends=False)
+                reslist = f.readlines()
         except IOError as e:
             if DEBUG:
                 print(e)

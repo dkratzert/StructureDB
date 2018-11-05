@@ -414,6 +414,7 @@ def is_valid_cell(cell = None):
     """
     Checks is a unit cell is valid
     """
+    cell = str(cell)
     if not cell:
         return []
     try:

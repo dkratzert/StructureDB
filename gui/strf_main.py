@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\GitHub\StructureFinder\./gui\strf_main.ui'
 #
-# Created: Mon Nov 05 09:17:48 2018
+# Created: Mon Nov 05 10:27:34 2018
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -373,6 +373,8 @@ class Ui_stdbMainwindow(object):
         self.cifList_treeWidget.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.cifList_treeWidget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.cifList_treeWidget.setObjectName(_fromUtf8("cifList_treeWidget"))
+        self.cifList_treeWidget.header().setDefaultSectionSize(200)
+        self.cifList_treeWidget.header().setMinimumSectionSize(100)
         self.cifList_treeWidget.header().setSortIndicatorShown(False)
         self.importResults.addWidget(self.cifList_treeWidget, 1, 0, 1, 7)
         self.openglview = QtGui.QGroupBox(self.maintab)
@@ -1072,7 +1074,7 @@ class Ui_stdbMainwindow(object):
         self.actionGo_to_All_CIF_Tab.setObjectName(_fromUtf8("actionGo_to_All_CIF_Tab"))
 
         self.retranslateUi(stdbMainwindow)
-        self.MaintabWidget.setCurrentIndex(3)
+        self.MaintabWidget.setCurrentIndex(0)
         QtCore.QObject.connect(self.actionExit, QtCore.SIGNAL(_fromUtf8("triggered()")), stdbMainwindow.close)
         QtCore.QMetaObject.connectSlotsByName(stdbMainwindow)
         stdbMainwindow.setTabOrder(self.importDirButton, self.importDatabaseButton)
