@@ -13,8 +13,7 @@ from __future__ import print_function
 
 urlprefix = "https://www.xs3-data.uni-freiburg.de/structurefinder"
 
-from urllib import FancyURLopener
-
+from urllib import urlopen
 
 
 def get_current_strf_version(VERSION=0, silent=True):
@@ -30,19 +29,9 @@ def get_current_strf_version(VERSION=0, silent=True):
     :type: str
     """
     import socket
-
-    # Have to do this here to prevent import problems:
-    class MyOpener(FancyURLopener):
-        """
-        Sets the user agent of the urllib http request.
-        """
-        version = 'STRF {}'.format(VERSION)
-
-    myurlopen = MyOpener()
     socket.setdefaulttimeout(3)
-    FancyURLopener.version = "STRF-versioncheck {}".format(VERSION)
     try:
-        response = myurlopen.open('{}/version.txt'.format(urlprefix))
+        response = urlopen('{}/version.txt'.format(urlprefix))
     except IOError:
         if not silent:
             print("*** Unable to connect to update server. No Update possible. ***")

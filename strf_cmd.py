@@ -1,12 +1,10 @@
-
+import os
 import sys
 import argparse
 
 import time
-from pathlib import Path
 from sqlite3 import DatabaseError
 
-from misc import update_check
 from searcher import filecrawler, database_handler
 
 from misc.version import VERSION
@@ -54,16 +52,17 @@ args = parser.parse_args()
 
 
 def check_update():
-    if update_check.is_update_needed(VERSION=VERSION):
-        print('A new Version of StructureFinder is available at '
-              'https://www.xs3.uni-freiburg.de/research/structurefinder')
+    pass
+    #if update_check.is_update_needed(VERSION=VERSION):
+    #    print('A new Version of StructureFinder is available at '
+    #          'https://www.xs3.uni-freiburg.de/research/structurefinder')
 
 
 ncifs = 0
 try:
     if not args.dir:
         parser.print_help()
-        check_update()
+        #check_update()
         sys.exit()
 except IndexError:
     print("No valid search directory given.\n")
@@ -82,9 +81,9 @@ else:
         dbfilename = 'structuredb.sqlite'
     if args.delete:
         try:
-            dbf = Path(dbfilename)
-            dbf.unlink()
-        except FileNotFoundError:
+            dbf = os.path.abspath(dbfilename)
+            os.remove(dbf)
+        except OSError:
             pass
     for p in args.dir:
         # the command line version
@@ -110,9 +109,9 @@ else:
         except KeyboardInterrupt:
             sys.exit()
         print("---------------------")
-    if db and structures:
-        db.init_textsearch()
-        structures.populate_fulltext_search_table()
+    #if db and structures:
+    #    db.init_textsearch()
+    #    structures.populate_fulltext_search_table()
     time2 = time.perf_counter()
     diff = time2 - time1
     m, s = divmod(diff, 60)
