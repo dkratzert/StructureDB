@@ -47,27 +47,27 @@ class MolFile():
     """
     This mol2 file writer is only to use the file with JSmol, not to implement the standard completely!
     """
-    def __init__(self, id: str, db: StructureTable, cell: tuple):
+    def __init__(self, id, db, cell):
         self.db = db
         self.atoms = self.db.get_atoms_table(id, cell, cartesian=True)
         self.bonds = self.get_conntable_from_atoms()
         self.bondscount = len(self.bonds)
         self.atomscount = len(self.atoms)
 
-    def header(self) -> str:
+    def header(self):
         """
         For JSmol, I don't need a facy header.
         """
         return "{}{}{}".format(os.linesep, os.linesep, os.linesep)
 
-    def connection_table(self) -> str:
+    def connection_table(self):
         """
         num_atoms [num_bonds [num_subst [num_feat [num_sets]]]]
         """
         tab = " {0}  {1}  1  0  0\nSMALL\nNO_CHARGES\n\n".format(self.atomscount, self.bondscount)
         return tab
 
-    def get_atoms_string(self) -> str:
+    def get_atoms_string(self):
         """
         Returns a string with an atom in each line.
         atom_id atom_name x y z atom_type [subst_id [subst_name [charge [status_bit]]]]
@@ -83,7 +83,7 @@ class MolFile():
             atoms.append(" {} {} {:>9.5f} {:>9.5f} {:>9.5f} {:<2s}  1".format(num, name, x, y, z, element))
         return '\n'.join(atoms)
 
-    def get_bonds_string(self) -> str:
+    def get_bonds_string(self):
         """
         bond_id  origin_atom_id  target_atom_id  bond_type [status_bits]
         """
@@ -132,7 +132,7 @@ class MolFile():
                         continue
         return conlist
 
-    def footer(self) -> str:
+    def footer(self):
         """
         """
         return "\n"

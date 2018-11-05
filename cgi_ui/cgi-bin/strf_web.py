@@ -4,6 +4,7 @@
 
 ###########################################################
 ###  Configure the web server here:   #####################
+from shelxfile.misc import which
 
 host = "10.6.13.3"
 port = "80"
@@ -23,7 +24,6 @@ site_ip = host + ':' + port
 
 import math
 import os
-import pathlib
 import sys
 from xml.etree.ElementTree import ParseError
 
@@ -38,7 +38,6 @@ if pyver[0] == 3 and pyver[1] < 4:
     print("You need Python 3.4 and up in oder to run this proram!")
     sys.exit()
 
-from shutil import which
 from searcher.constants import centering_letter_2_num
 from ccdc.query import get_cccsd_path, search_csd, parse_results
 from cgi_ui.bottle import Bottle, static_file, template, redirect, request, response
@@ -74,10 +73,7 @@ def main():
     """
     response.set_header('Set-Cookie', 'str_id=')
     response.content_type = 'text/html; charset=UTF-8'
-    p = pathlib.Path('./cgi_ui/views/spgr.html').open()
-    space_groups = p.read().encode(encoding='UTF-8', errors='ignore')
-    p.close()
-    output = template('./cgi_ui/views/strf_web_template', {"my_ip": site_ip, "space_groups": space_groups})
+    output = template('./cgi_ui/views/strf_web_template', {"my_ip": site_ip})
     return output
 
 
@@ -215,8 +211,8 @@ def cellsearch():
             return 'true'
     else:
         try:
-            if which('ccdc_searcher') or \
-                    pathlib.Path('/opt/CCDC/CellCheckCSD/bin/ccdc_searcher').exists():
+            p = os.path.exists('/opt/CCDC/CellCheckCSD/bin/ccdc_searcher')
+            if which('ccdc_searcher') or p:
                 print('CellCheckCSD found')
                 return 'true'
         except TypeError:
@@ -314,7 +310,7 @@ def is_ajax():
         return False
 
 
-def get_structures_json(structures, ids = None, show_all: bool = False) -> dict:
+def get_structures_json(structures, ids, show_all = False):
     """
     Returns the next package of table rows for continuos scrolling.
     """
@@ -334,7 +330,7 @@ def get_structures_json(structures, ids = None, show_all: bool = False) -> dict:
     return {"total": number, "records": dic, "status": "success"}
 
 
-def get_cell_parameters(structures: StructureTable, strid: str) -> str:
+def get_cell_parameters(structures, strid):
     """
     Resturns unit cell parameters as html formated string.
     """
@@ -352,7 +348,7 @@ def get_cell_parameters(structures: StructureTable, strid: str) -> str:
     return cstr
 
 
-def get_residuals_table1(structures: StructureTable, cif_dic: dict, structure_id: int) -> str:
+def get_residuals_table1(structures, cif_dic, structure_id):
     """
     Returns a table with the most important residuals of a structure.
     """
@@ -405,7 +401,7 @@ def get_residuals_table1(structures: StructureTable, cif_dic: dict, structure_id
     return table1
 
 
-def get_residuals_table2(cif_dic: dict) -> str:
+def get_residuals_table2(cif_dic):
     """
     Returns a table with the most important residuals of a structure.
     """
@@ -462,7 +458,7 @@ def get_residuals_table2(cif_dic: dict) -> str:
     return table2
 
 
-def get_all_cif_val_table(structures: StructureTable, structure_id: int) -> str:
+def get_all_cif_val_table(structures, structure_id):
     """
     Returns a html table with the residuals values of a structure.
     """
@@ -506,7 +502,7 @@ def get_all_cif_val_table(structures: StructureTable, structure_id: int) -> str:
     return table_string
 
 
-def chunks(l: list, n: int) -> list:
+def chunks(l, n):
     """
     returns successive n-sized chunks from l.
     >>> l = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 'a', 'b', 'c', 'd', 'e', 'f']
@@ -520,7 +516,7 @@ def chunks(l: list, n: int) -> list:
     return [l[i:i + n] for i in range(0, len(l), n)]
 
 
-def find_cell(structures: StructureTable, cell: list, sublattice=False, more_results=False) -> list:
+def find_cell(structures, cell, sublattice=False, more_results=False):
     """
     Finds unit cells in db. Rsturns hits a a list of ids.
     """
@@ -565,7 +561,7 @@ def find_cell(structures: StructureTable, cell: list, sublattice=False, more_res
         return []
 
 
-def search_text(structures: StructureTable, search_string: str) -> tuple:
+def search_text(structures, search_string):
     """
     searches db for given text
     """
@@ -584,7 +580,7 @@ def search_text(structures: StructureTable, search_string: str) -> tuple:
     return idlist
 
 
-def search_elements(structures: StructureTable, elements: str, excluding: str = '', onlyelem: bool = False) -> list:
+def search_elements(structures, elements, excluding = '', onlyelem = False):
     """
     list(set(l).intersection(l2))
     """
@@ -607,7 +603,7 @@ def search_elements(structures: StructureTable, elements: str, excluding: str = 
     return list(res)
 
 
-def find_dates(structures: StructureTable, date1: str, date2: str) -> list:
+def find_dates(structures, date1, date2):
     """
     Returns a list if id between date1 and date2
     """
@@ -619,9 +615,9 @@ def find_dates(structures: StructureTable, date1: str, date2: str) -> list:
     return result
 
 
-def advanced_search(cellstr: str, elincl, elexcl, txt_in, txt_out, sublattice, more_results,
-                    date1: str = None, date2: str = None, structures: StructureTable = None,
-                    it_num: str = None, onlyelem: bool = False) -> list:
+def advanced_search(cellstr, elincl, elexcl, txt_in, txt_out, sublattice, more_results,
+                    date1 = None, date2 = None, structures = None,
+                    it_num = None, onlyelem = False):
     """
     Combines all the search fields. Collects all includes, all excludes ad calculates
     the difference.

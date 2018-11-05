@@ -94,6 +94,7 @@ XNPD Umin[-0.001]
 ZERR Z esd(a) esd(b) esd(c) esd(α) esd(β) esd(γ)
 """
 
+__metaclass__ = type
 
 class Restraint:
 

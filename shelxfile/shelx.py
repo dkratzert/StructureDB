@@ -9,7 +9,6 @@
 # Daniel Kratzert
 # ----------------------------------------------------------------------------
 #
-from displaymol.sdm import SDM
 
 __doc__ = """
 This is a full implementation of the SHELXL file syntax. Additionally it is able to edit SHELX properties with Python.
@@ -811,7 +810,7 @@ class ShelXFile():
         includefiles = []
         try:
             with open(resfile, 'r') as f:
-                reslist = f.read().splitlines(keepends=False)
+                reslist = f.read().splitlines()
                 for n, line in enumerate(reslist):
                     if line.startswith('+'):
                         try:

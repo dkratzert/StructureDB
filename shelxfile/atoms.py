@@ -609,7 +609,7 @@ class Atom():
         self.uvals = [0.04]
 
     '''
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other):
         """
         Returns True if two atoms are of same name, part and residue.
         """
