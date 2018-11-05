@@ -272,8 +272,7 @@ def put_files_in_db(self=None, searchpath = './', excludes = None, lastid = 1,
     return lastid-1
 
 
-def fill_db_tables(cif, filename, path, structure_id,
-                   structures):
+def fill_db_tables(cif, filename, path, structure_id, structures):
     """
     Fill all info from cif file into the database tables
     _atom_site_label

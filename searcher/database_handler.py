@@ -459,7 +459,7 @@ class StructureTable():
         beta, betaerror = get_error_from_value(beta)
         gamma, gammaerror = get_error_from_value(gamma)
         vol = volume
-        if isinstance(volume, str):
+        if isinstance(volume, basestring):
             vol = volume.split('(')[0]
         if self.database.db_request(req, (structure_id, a, b, c, alpha, beta, gamma,
                                           aerror, berror, cerror, alphaerror, betaerror, gammaerror, vol)):

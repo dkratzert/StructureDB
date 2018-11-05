@@ -29,7 +29,7 @@ from p4pfile.p4p_reader import P4PFile, read_file_to_list
 from shelxfile.misc import chunks
 from shelxfile.shelx import ShelXFile
 
-DEBUG = True
+DEBUG = False
 import math
 import os
 import shutil
@@ -753,7 +753,7 @@ class StartStructureDB(QMainWindow):
                         ['_space_group_symop_operation_xyz'].replace("'", "").replace(" ", "").split("\n")]
         if symmcards[0] == ['']:
             print('Cif file has no symmcards, unable to grow structure.')
-        blist = None
+        blist = []
         if self.ui.growCheckBox.isChecked():
             atoms = self.structures.get_atoms_table(structure_id, cell[:6], cartesian=False, as_list=True)
             if atoms:
@@ -764,10 +764,12 @@ class StartStructureDB(QMainWindow):
                 # print(len(blist))
         else:
             atoms = self.structures.get_atoms_table(structure_id, cell[:6], cartesian=True, as_list=False)
-            blist = None
+            blist = []
         try:
-            mol = mol_file_writer.MolFile(atoms, blist)
-            mol = mol.make_mol()
+            mol = ' '
+            if atoms:
+                mol = mol_file_writer.MolFile(atoms, blist)
+                mol = mol.make_mol()
         except (TypeError, KeyError):
             print("Error in structure", structure_id, "while writing mol file.")
             mol = ' '
