@@ -7,7 +7,6 @@ from sqlite3 import DatabaseError
 
 from searcher import filecrawler, database_handler
 
-from misc.version import VERSION
 
 parser = argparse.ArgumentParser(description='Command line version of StructureFinder to collect .cif/.res files to a '
                                              'database.\n'
@@ -74,7 +73,7 @@ else:
         sys.exit()
     db = None
     structures = None
-    time1 = time.perf_counter()
+    time1 = time.time()
     if args.outfile:
         dbfilename = args.outfile
     else:
@@ -112,7 +111,7 @@ else:
     #if db and structures:
     #    db.init_textsearch()
     #    structures.populate_fulltext_search_table()
-    time2 = time.perf_counter()
+    time2 = time.time()
     diff = time2 - time1
     m, s = divmod(diff, 60)
     h, m = divmod(m, 60)

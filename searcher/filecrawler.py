@@ -15,12 +15,11 @@ Created on 09.02.2015
 import fnmatch
 import os
 import re
-import sys
 import tarfile
 import time
 import zipfile
 
-from searcher import atoms, database_handler, fileparser
+from searcher import atoms, fileparser
 from lattice.lattice import vol_unitcell
 from searcher.fileparser import Cif
 from shelxfile.shelx import ShelXFile
@@ -63,7 +62,7 @@ class MyZipReader(MyZipBase):
                 (self.cifpath, self.cifname) = os.path.split(name)
                 if self.cifname.endswith('.cif'):
                     if not self.cifname.startswith('__') and zfile.NameToInfo[name].file_size < 150000000:
-                        yield zfile.read(name).decode('utf-8', 'ignore').splitlines(keepends=True)
+                        yield zfile.read(name).decode('utf-8', 'ignore').splitlines()
         except Exception as e:
             #print("Error: '{}' in file {}".format(e, self.filepath.encode(encoding='utf-8', errors='ignore')))
             #print(e, self.filepath)  # filepath is not utf-8 save
@@ -86,25 +85,11 @@ class MyTarReader(MyZipBase):
             for name in tfile.getnames():
                 self.cifpath, self.cifname = os.path.split(name)
                 if self.cifname.endswith('.cif'):
-                    yield tfile.extractfile(name).read().decode('utf-8', 'ignore').splitlines(keepends=True)
+                    yield tfile.extractfile(name).read().decode('utf-8', 'ignore').splitlines()
         except Exception as e:
             #print("Error: '{}' in file {}".format(e, self.filepath.encode(encoding='utf-8', errors='ignore')))
             #print(e, self.filepath)  # filepath is not utf-8 save
             yield []
-
-
-def create_file_list(searchpath='None', ending='cif'):
-    """
-    walks through the file system and collects cells from res/cif files.
-    Pathlib is nice, but does not allow me to do rglob for more than one file type.
-    """
-    if not os.path.isdir(searchpath):
-        print('search path {0} not found! Or no directory!'.format(searchpath))
-        sys.exit()
-    print('collecting files... (may take some minutes)')
-    p = pathlib.Path(searchpath)
-    paths = p.rglob("*.{}".format(ending))
-    return paths
 
 
 def filewalker_walk(startdir, patterns):
@@ -200,7 +185,7 @@ def put_files_in_db(self=None, searchpath = './', excludes = None, lastid = 1,
                         structures.database.commit_db()
                     prognum += 1
             continue
-        if (name.endswith('.zip') or name.endswith('.tar.gz') or name.endswith('.tar.bz2') 
+        if (name.endswith('.zip') or name.endswith('.tar.gz') or name.endswith('.tar.bz2')
                 or name.endswith('.tgz')) and fillcif:
             if fullpath.endswith('.zip'):
                 # MyZipReader defines .cif ending:
@@ -258,8 +243,7 @@ def put_files_in_db(self=None, searchpath = './', excludes = None, lastid = 1,
                     print('res file not added:', fullpath)
                 continue
             if self:
-                self.add_table_row(name=name, path=fullpath,
-                               data=name, structure_id=str(lastid))
+                self.add_table_row(name=name, path=fullpath, data=name, structure_id=str(lastid))
             lastid += 1
             num += 1
             rescount += 1
@@ -320,17 +304,17 @@ def fill_db_tables(cif, filename, path, structure_id,
     if not volume or volume == "?":
         # TODO: bring get_error_from_value() to here:
         try:
-            if isinstance(a, str):
+            if isinstance(a, basestring):
                 a = float(a.split('(')[0])
-            if isinstance(b, str):
+            if isinstance(b, basestring):
                 b = float(b.split('(')[0])
-            if isinstance(c, str):
+            if isinstance(c, basestring):
                 c = float(c.split('(')[0])
-            if isinstance(alpha, str):
+            if isinstance(alpha, basestring):
                 alpha = float(alpha.split('(')[0])
-            if isinstance(beta, str):
+            if isinstance(beta, basestring):
                 beta = float(beta.split('(')[0])
-            if isinstance(gamma, str):
+            if isinstance(gamma, basestring):
                 gamma = float(gamma.split('(')[0])
             volume = str(vol_unitcell(a, b, c, alpha, beta, gamma))
         except ValueError:

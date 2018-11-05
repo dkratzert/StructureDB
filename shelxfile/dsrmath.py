@@ -636,7 +636,6 @@ class SymmetryElement(object):
         :param lattSymm: SymmetryElement.
         :return: SymmetryElement.
         """
-        # newSymm = deepcopy(self)
         newSymm = SymmetryElement(self.toShelxl().split(','))
         newSymm.trans = Array([(self.trans[0] + lattSymm.trans[0]) / 1,
                                (self.trans[1] + lattSymm.trans[1]) / 1,
@@ -664,7 +663,7 @@ class SymmetryElement(object):
         return ', '.join(lines)
 
     def _parse_line(self, symm):
-        symm = symm.upper().replace(' ', '')
+        symm = str(symm.upper().replace(' ', ''))
         chars = ['X', 'Y', 'Z']
         line = []
         for char in chars:

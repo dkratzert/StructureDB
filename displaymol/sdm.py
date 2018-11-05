@@ -17,7 +17,8 @@ from searcher import database_handler
 from searcher.atoms import get_radius_from_element
 from shelxfile.dsrmath import Array, SymmetryElement, Matrix, frac_to_cart
 
-DEBUG = True
+DEBUG = False
+
 
 class Atom():
     def __init__(self, name, element, x, z, y, part):

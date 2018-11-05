@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\GitHub\StructureFinder\./gui\strf_main.ui'
 #
-# Created: Mon Nov 05 10:40:38 2018
+# Created: Mon Nov 05 12:44:41 2018
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!

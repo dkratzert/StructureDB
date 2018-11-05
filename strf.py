@@ -471,7 +471,7 @@ class StartStructureDB(QMainWindow):
         # worker.start()
         self.tmpfile = True
         self.statusBar().showMessage('')
-        #self.close_db()
+        self.close_db()
         self.start_db()
         self.progressbar(1, 0, 20)
         self.abort_import_button.show()
