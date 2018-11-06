@@ -21,7 +21,9 @@ from sqlite3 import DatabaseError, ProgrammingError, OperationalError
 from urlparse import urlparse
 
 from PyQt4 import QtCore, uic, QtGui
-from PyQt4.QtGui import QMainWindow, QPushButton, QProgressBar, QApplication, QFileDialog, QDialog, QTreeWidgetItem
+from PyQt4.QtCore import QtWarningMsg
+from PyQt4.QtGui import QMainWindow, QPushButton, QProgressBar, QApplication, QFileDialog, QDialog, QTreeWidgetItem, \
+    QErrorMessage, QMessageBox
 from PyQt4.QtWebKit import QWebView
 
 from displaymol.sdm import SDM
@@ -515,6 +517,7 @@ class StartStructureDB(QMainWindow):
     def close_db(self, copy_on_close=None):
         """
         Closed the current database and erases the list.
+        copy_on_close is used to save the databse into a file during close_db().
         :param copy_on_close: Path to where the file should be copied after close()
         """
         self.ui.searchCellLineEDit.clear()
@@ -585,10 +588,12 @@ class StartStructureDB(QMainWindow):
         Saves the database to a certain file. Therefore I have to close the database.
         """
         status = False
-        save_name, tst = QFileDialog.getSaveFileName(self, caption='Save File', directory='./',
-                                                               filter="*.sqlite")
+        save_name = QFileDialog.getSaveFileName(self, caption='Save File', directory='./', filter="*.sqlite, *.*")
         if save_name:
-            if shutil._samefile(self.dbfilename, save_name):
+            if os.path.abspath(self.dbfilename) == os.path.abspath(save_name):
+                qe = QMessageBox()
+                qe.setText("You can not save to the currently opened file!")
+                qe.exec_()
                 self.statusBar().showMessage("You can not save to the currently opened file!", msecs=5000)
                 return False
         if save_name:
@@ -1000,8 +1005,9 @@ class StartStructureDB(QMainWindow):
         """
         Reads a p4p file to get the included unit cell for a cell search.
         """
-        fname, _ = QFileDialog.getOpenFileName(self, caption='Open p4p File', directory='./',
+        fname = QFileDialog.getOpenFileName(self, caption='Open p4p File', directory='./',
                                                          filter="*.p4p *.cif *.res *.ins")
+        fname = str(fname)
         _, ending = os.path.splitext(fname)
         if ending == '.p4p':
             self.search_for_p4pcell(fname)

@@ -2,8 +2,7 @@
 
 # Form implementation generated from reading ui file 'D:\GitHub\StructureFinder\./gui\strf_main.ui'
 #
-# Created: Mon Nov 05 16:40:51 2018
-#      by: PyQt4 UI code generator 4.10.4
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -324,7 +323,6 @@ class Ui_stdbMainwindow(object):
         self.formLabel.setScaledContents(False)
         self.formLabel.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
         self.formLabel.setWordWrap(True)
-        self.formLabel.setMargin(1)
         self.formLabel.setOpenExternalLinks(False)
         self.formLabel.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
         self.formLabel.setObjectName(_fromUtf8("formLabel"))
@@ -389,8 +387,8 @@ class Ui_stdbMainwindow(object):
         self.openglview.setCheckable(False)
         self.openglview.setObjectName(_fromUtf8("openglview"))
         self.ogllayout = QtGui.QVBoxLayout(self.openglview)
-        self.ogllayout.setSpacing(6)
         self.ogllayout.setContentsMargins(1, 5, 1, 1)
+        self.ogllayout.setSpacing(6)
         self.ogllayout.setObjectName(_fromUtf8("ogllayout"))
         self.importResults.addWidget(self.openglview, 2, 6, 1, 1)
         self.searchLayout = QtGui.QHBoxLayout()

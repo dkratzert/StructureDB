@@ -19,7 +19,7 @@ import tarfile
 import time
 import zipfile
 
-from searcher import atoms, fileparser
+from searcher import atoms
 from lattice.lattice import vol_unitcell
 from searcher.fileparser import Cif
 from shelxfile.shelx import ShelXFile
@@ -154,7 +154,7 @@ def put_files_in_db(self=None, searchpath = './', excludes = None, lastid = 1,
         fullpath = os.path.join(filepth, name)
         options['modification_time'] = time.strftime('%Y-%m-%d', time.gmtime(os.path.getmtime(fullpath)))
         options['file_size'] = int(os.stat(str(fullpath)).st_size)
-        cif = fileparser.Cif(options=options)
+        cif = Cif(options=options)
         if self:
             if prognum == 20:
                 prognum = 0
@@ -411,6 +411,12 @@ def fill_db_with_res_data(res, filename, path, structure_id, structures, options
         cif.cif_data['_refine_diff_density_max'] = res.hpeak
     if res.latt:
         cif.cif_data['_space_group_centring_type'] = res.latt.N_str
+    if res.space_group:
+        cif.cif_data["_space_group_name_H-M_alt"] = res.space_group
+    if res.goof:
+        cif.cif_data["_refine_ls_goodness_of_fit_ref"] = res.goof
+    if res.rgoof:
+        cif.cif_data["_refine_ls_restrained_S_all"] = res.rgoof
     try:
         cif.cif_data["_shelx_res_file"] = str(res)
     except IndexError:
