@@ -211,13 +211,13 @@ class StartStructureDB(QMainWindow):
             identifier = sel.indexes()[8].data()
         except KeyError:
             return None
-        webbrowser.open_new_tab('https://www.ccdc.cam.ac.uk/structures/Search?entry_list=' + identifier)
+        webbrowser.open_new_tab('https://www.ccdc.cam.ac.uk/structures/Search?entry_list=' + str(identifier.toString()))
 
-    def dragEnterEvent(self, e):
-        if e.mimeData().hasUrls():
-            e.accept()
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
         else:
-            e.ignore()
+            event.ignore()
 
     def dropEvent(self, e):
         """

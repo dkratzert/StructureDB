@@ -11,7 +11,7 @@ from shelxfile.misc import which
 try:
     from winreg import OpenKey, HKEY_CURRENT_USER, EnumKey, QueryInfoKey, EnumValue
 except Exception:
-    pass
+    print('winreg package is not installed!!')
 
 
 querytext = """<?xml version="1.0" encoding="UTF-8"?>
@@ -50,7 +50,7 @@ def get_cccsd_path():
         if QueryInfoKey(path)[1] > 0:  # subkey with content
             if latest < ver:
                 csd_path = os.path.join(EnumValue(path, 0)[1], 'ccdc_searcher.bat')
-    if csd_path.is_file():
+    if os.path.exists(csd_path):
         return csd_path
     else:
         try:
@@ -118,7 +118,8 @@ def search_csd(cell, centering):
     # prepare the temporary results file:
     resdescriptor, resultfile = mkstemp(suffix='xml')
     # write query to file:
-    os.path.abspath(queryfile).write_text(querystring)
+    with open(os.path.abspath(queryfile), 'w') as f:
+        f.write(querystring)
     if sys.platform == 'win32':
         p = get_cccsd_path()
         shell = True
@@ -129,9 +130,10 @@ def search_csd(cell, centering):
     try:
         # run the search:
         # shell=True disables the output window of the process
-        subprocess.call([str(p.absolute()), '-query', queryfile, '-results', resultfile], shell=shell)
+        subprocess.call([str(p), '-query', queryfile, '-results', resultfile], shell=shell)
         # read the result:
-        rf = os.path.abspath(resultfile).read_text(encoding='utf-8', errors='ignore')
+        with open(os.path.abspath(resultfile), 'r') as f:
+            rf = f.read()
     except Exception as e:
         print('Could not search cell:')
         print(e)
