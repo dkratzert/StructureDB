@@ -11,7 +11,7 @@ Created on 09.02.2015
 
 @author: daniel
 """
-
+from __future__ import print_function
 import sqlite3
 import sys
 from sqlite3 import OperationalError
@@ -458,9 +458,7 @@ class StructureTable():
         alpha, alphaerror = get_error_from_value(alpha)
         beta, betaerror = get_error_from_value(beta)
         gamma, gammaerror = get_error_from_value(gamma)
-        vol = volume
-        if isinstance(volume, basestring):
-            vol = volume.split('(')[0]
+        vol, volerror = get_error_from_value(volume)
         if self.database.db_request(req, (structure_id, a, b, c, alpha, beta, gamma,
                                           aerror, berror, cerror, alphaerror, betaerror, gammaerror, vol)):
             return True
@@ -736,6 +734,13 @@ class StructureTable():
         """
         request = """select * from residuals where StructureId = ?"""
         # setting row_factory to dict for the cif keys:
+        dic = self.get_dict_from_request(request, structure_id)
+        return dic
+
+    def get_dict_from_request(self, request, structure_id):
+        """
+        Retruns the result of the given database request as dictionary.
+        """
         self.database.con.row_factory = self.database.dict_factory
         self.database.cur = self.database.con.cursor()
         dic = {}
@@ -761,19 +766,7 @@ class StructureTable():
         """
         request = """select * from cell where StructureId = ?"""
         # setting row_factory to dict for the cif keys:
-        self.database.con.row_factory = self.database.dict_factory
-        self.database.cur = self.database.con.cursor()
-        dic = {}
-        try:
-            dic = self.database.db_fetchone(request, (structure_id,))
-        except (ValueError, sqlite3.InterfaceError) as e:
-            print(e)
-            print('request: ', request)
-            print('structureid: ', structure_id)
-        self.database.cur.close()
-        # setting row_factory back to regular touple base requests:
-        self.database.con.row_factory = None
-        self.database.cur = self.database.con.cursor()
+        dic = self.get_dict_from_request(request, structure_id)
         return dic
 
     @staticmethod
