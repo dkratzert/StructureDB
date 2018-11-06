@@ -426,5 +426,9 @@ def is_valid_cell(cell = None):
     return cell
 
 
+def same_file(file1, file2):
+    import os
+    return os.path.abspath(file1) == os.path.abspath(file2) 
+
 if __name__ == '__main__':
     pass

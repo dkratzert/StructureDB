@@ -48,7 +48,7 @@ from pymatgen.core import mat_lattice
 from searcher import constants, misc, filecrawler, database_handler
 from searcher.constants import py36, centering_num_2_letter, centering_letter_2_num
 from searcher.fileparser import Cif
-from searcher.misc import is_valid_cell, elements
+from searcher.misc import is_valid_cell, elements, same_file
 
 is_windows = False
 if platform.system() == 'Windows':
@@ -523,10 +523,10 @@ class StartStructureDB(QMainWindow):
         self.ui.searchCellLineEDit.clear()
         self.ui.txtSearchEdit.clear()
         self.ui.cifList_treeWidget.clear()
-        if py36:
-            molf = os.path.join(os.path.join(application_path, "./displaymol/jsmol.htm"))
-            molf.write_text(data=' ', encoding="utf-8", errors='ignore')
-            self.view.reload()
+        molf = os.path.join(os.path.join(application_path, "./displaymol/jsmol.htm"))
+        with open(molf, 'w') as f:
+            f.write(' ')
+        self.view.reload()
         try:
             self.structures.database.cur.close()
         except Exception:
@@ -541,7 +541,7 @@ class StartStructureDB(QMainWindow):
         except:
             pass
         if copy_on_close:
-            if os.path.samefile(self.dbfilename, copy_on_close):
+            if same_file(self.dbfilename, copy_on_close):
                 self.statusBar().showMessage("You can not save to the currently opened file!", msecs=5000)
                 return False
             else:
@@ -590,7 +590,7 @@ class StartStructureDB(QMainWindow):
         status = False
         save_name = QFileDialog.getSaveFileName(self, caption='Save File', directory='./', filter="*.sqlite, *.*")
         if save_name:
-            if os.path.abspath(self.dbfilename) == os.path.abspath(save_name):
+            if same_file(self.dbfilename, save_name):
                 qe = QMessageBox()
                 qe.setText("You can not save to the currently opened file!")
                 qe.exec_()
