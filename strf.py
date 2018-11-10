@@ -788,9 +788,8 @@ class StartStructureDB(QMainWindow):
                 raise
         # print(self.ui.openglview.width()-30, self.ui.openglview.height()-50)
         content = write_html.write(mol, self.ui.openglview.width() - 30, self.ui.openglview.height() - 50)
-        p2 = os.path.join(application_path, "./displaymol/jsmol.htm")
-        with open(p2, 'w') as f:
-            f.write(content)
+        p2 = Path(os.path.join(application_path, "./displaymol/jsmol.htm"))
+        p2.write_text(data=content, encoding="utf-8", errors='ignore')
         self.view.reload()
 
     @QtCore.pyqtSlot('QString')
@@ -1061,8 +1060,7 @@ class StartStructureDB(QMainWindow):
         if fname:
             cif = Cif()
             try:
-                with open(os.path.abspath(fname), 'r') as f: 
-                    cif.parsefile(f.readlines())
+                cif.parsefile(Path(fname).readlines(encoding='utf-8', errors='ignore'))
             except Exception:
                 self.moving_message('File not found.')
         else:
