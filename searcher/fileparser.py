@@ -125,13 +125,13 @@ class Cif(object):
             line = line.rstrip('\r\n ')
             if not line:
                 loop = False
-                loophead_list.clear()
+                loophead_list = []
                 loopkey = ''
                 continue
             if line[0] == "_" and loop_body:
                 loop = False
                 loop_body = False
-                loophead_list.clear()
+                loophead_list = []
                 loopkey = ''
             if loop:
                 line = line.lstrip()
@@ -143,7 +143,7 @@ class Cif(object):
                 if line[:5] == "loop_":
                     loop = True
                     loop_body = False
-                    loophead_list.clear()
+                    loophead_list = []
                     loopkey = ''
                     continue
                 if line[0] != "_":
@@ -350,7 +350,8 @@ class Cif(object):
         return [x[item] for x in self.loops if item in x]
 
     @property
-    def atoms(self) -> list:
+    def atoms(self):
+        #type: () -> list
         """
         A convenient way of getting atoms from the cif file
         [Name type x y z occupancy part]
@@ -407,7 +408,8 @@ class Cif(object):
         return type_symbol
 
     @property
-    def symm(self) -> list:
+    def symm(self):
+        # type: () -> list
         """
         Yields symmetry operations.
         >>> cif = Cif()
@@ -425,7 +427,8 @@ class Cif(object):
             return f.readlines()
 
     @staticmethod
-    def delimit_line(line: str) -> list:
+    def delimit_line(line):
+        # type: (str) -> list
         """
         Searches for delimiters in a cif line and returns a list of the respective values.
         >>> Cif.delimit_line("Aminoff, G.")
@@ -465,7 +468,7 @@ class Cif(object):
                         data.append(i.strip("'").strip('"'))
                         continue
                 if i[0] == "'" or i[0] == '"':
-                    word.clear()
+                    word = []
                     word.append(i.strip("'").strip('"'))
                     cont = True
                     continue

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf_8 -*-
 """
 Created on 09.02.2015
 
@@ -426,9 +426,9 @@ class StructureTable():
         req = '''
               INSERT INTO Structure (Id, measurement, filename, path, dataname) VALUES(?, ?, ?, ?, ?)
               '''
-        filename = filename.encode(db_enoding, "ignore")  # .encode("utf-8", "surrogateescape")
-        path = path.encode(db_enoding, "ignore")
-        dataname = dataname.encode(db_enoding, "ignore")
+        filename = unicode(filename, errors='ignore')
+        path = unicode(path, errors='ignore')
+        dataname = dataname.encode(db_enoding, errors='ignore')
         self.database.db_request(req, (structure_id, measurement_id, filename, path, dataname))
         return structure_id
 
