@@ -14,6 +14,8 @@ Created on 09.02.2015
 """
 from __future__ import print_function
 
+DEBUG = False
+
 import platform
 import webbrowser
 from os.path import isfile
@@ -31,7 +33,6 @@ from p4pfile.p4p_reader import P4PFile, read_file_to_list
 from shelxfile.misc import chunks
 from shelxfile.shelx import ShelXFile
 
-DEBUG = False
 import math
 import os
 import shutil
@@ -46,9 +47,9 @@ from lattice import lattice
 from misc.version import VERSION
 from pymatgen.core import mat_lattice
 from searcher import constants, misc, filecrawler, database_handler
-from searcher.constants import py36, centering_num_2_letter, centering_letter_2_num
+from searcher.constants import centering_num_2_letter, centering_letter_2_num
 from searcher.fileparser import Cif
-from searcher.misc import is_valid_cell, elements, same_file
+from searcher.misc import is_valid_cell, elements, same_file, Path
 
 is_windows = False
 if platform.system() == 'Windows':
@@ -125,9 +126,7 @@ class StartStructureDB(QMainWindow):
         self.ui.dateEdit1.setDate(QtCore.QDate(date.today()))
         self.ui.dateEdit2.setDate(QtCore.QDate(date.today()))
         try:
-            molf = os.path.join(application_path, "./displaymol/jsmol.htm")
-            with open(molf, 'w') as f:
-                f.write(' ')
+            self.write_empty_molfile(mol_data=' ')
             self.init_webview()
         except Exception as e:
             # Graphics driver not compatible
@@ -523,9 +522,7 @@ class StartStructureDB(QMainWindow):
         self.ui.searchCellLineEDit.clear()
         self.ui.txtSearchEdit.clear()
         self.ui.cifList_treeWidget.clear()
-        molf = os.path.join(os.path.join(application_path, "./displaymol/jsmol.htm"))
-        with open(molf, 'w') as f:
-            f.write(' ')
+        self.write_empty_molfile(mol_data=' ')
         self.view.reload()
         try:
             self.structures.database.cur.close()
@@ -619,8 +616,15 @@ class StartStructureDB(QMainWindow):
             self.display_molecule(cell, str(self.structureId))
         except Exception as e:
             print(e, ", unable to display molecule")
+            self.write_empty_molfile(' ')
+            self.view.reload()
             if DEBUG:
                 raise
+
+    @staticmethod
+    def write_empty_molfile(mol_data):
+        molf = Path(os.path.join(application_path, "./displaymol/jsmol.htm"))
+        molf.write_text(data=mol_data, encoding="utf-8", errors='ignore')
 
     def display_properties(self, structure_id, cif_dic):
         """
@@ -647,6 +651,8 @@ class StartStructureDB(QMainWindow):
             self.display_molecule(cell, structure_id)
         except Exception as e:
             print(e, "unable to display molecule!!")
+            self.write_empty_molfile(mol_data=' ')
+            self.view.reload()
             if DEBUG:
                 raise
         self.ui.cifList_treeWidget.setFocus()

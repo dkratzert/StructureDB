@@ -163,6 +163,8 @@ def get_error_from_value(value):
     (250.0123, 0.0023)
     >>> get_error_from_value("123(25)")
     (123.0, 25.0)
+    >>> get_error_from_value("123(25")
+    (123.0, 25.0)
     """
     try:
         value = value.replace(" ", "")
@@ -428,7 +430,26 @@ def is_valid_cell(cell = None):
 
 def same_file(file1, file2):
     import os
-    return os.path.abspath(file1) == os.path.abspath(file2) 
+    return os.path.abspath(file1) == os.path.abspath(file2)
+
+
+class Path(object):
+    def __init__(self, path_str):
+        self.path_str = path_str
+
+    def write_text(self, data='', encoding=None, errors=None):
+        with open(self.path_str, 'w') as f:
+            f.write(data)
+
+    def read_text(self, encoding=None, errors=None):
+        with open(self.path_str, 'r') as f:
+            data = f.read()
+        return data
+
+    def readlines(self, encoding=None, errors=None):
+        with open(self.path_str, 'r') as f:
+            yield f.readlines()
+
 
 if __name__ == '__main__':
     pass

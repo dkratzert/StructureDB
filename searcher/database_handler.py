@@ -135,6 +135,7 @@ class DatabaseRequest():
                         _computing_structure_solution 			TEXT,
                         _computing_structure_refinement 		TEXT,
                         _refine_special_details 				TEXT,
+                        _refine_ls_abs_structure_Flack          TEXT,
                         _refine_ls_structure_factor_coef 		TEXT,
                         _refine_ls_weighting_details 			TEXT,
                         _refine_ls_number_reflns 				INTEGER,
@@ -538,14 +539,7 @@ class StructureTable():
         False
         """
         request = """SELECT * FROM sum_formula WHERE StructureId = ?"""
-        # setting row_factory to dict for the cif keys:
-        self.database.con.row_factory = self.database.dict_factory
-        self.database.cur = self.database.con.cursor()
-        dic = self.database.db_fetchone(request, (structure_id,))
-        self.database.cur.close()
-        # setting row_factory back to regular touple base requests:
-        self.database.con.row_factory = None
-        self.database.cur = self.database.con.cursor()
+        dic = self.get_dict_from_request(request, structure_id)
         return dic
 
     def get_cif_sumform_by_id(self, structure_id):
@@ -610,6 +604,7 @@ class StructureTable():
                     _computing_structure_solution,
                     _computing_structure_refinement,
                     _refine_special_details,
+                    _refine_ls_abs_structure_Flack,
                     _refine_ls_structure_factor_coef,
                     _refine_ls_weighting_details,
                     _refine_ls_number_reflns,
@@ -675,6 +670,7 @@ class StructureTable():
             cif.cif_data['_computing_structure_solution'],  # Reference to structure-solution software
             cif.cif_data['_computing_structure_refinement'],  # Reference to structure-refinement software
             cif.cif_data['_refine_special_details'],  # Details about the refinement
+            cif.cif_data['_refine_ls_abs_structure_Flack'],
             cif.cif_data['_refine_ls_structure_factor_coef'],  # Code for F, F2 or I used in least-squares refinement
             cif.cif_data['_refine_ls_weighting_details'],  # Weighting expression
             cif.cif_data['_refine_ls_number_reflns'],  # The number of unique reflections contributing to the
@@ -740,6 +736,7 @@ class StructureTable():
         """
         Retruns the result of the given database request as dictionary.
         """
+        # setting row_factory to dict_factory
         self.database.con.row_factory = self.database.dict_factory
         self.database.cur = self.database.con.cursor()
         dic = {}
@@ -747,8 +744,6 @@ class StructureTable():
             dic = self.database.db_fetchone(request, (structure_id,))
         except (ValueError, InterfaceError) as e:
             print(e)
-            print('request: ', request)
-            print('structureid: ', structure_id)
         self.database.cur.close()
         # setting row_factory back to regular touple base requests:
         self.database.con.row_factory = None
