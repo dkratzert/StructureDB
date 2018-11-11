@@ -350,7 +350,7 @@ class StartStructureDB(QMainWindow):
         date2 = str(self.ui.dateEdit2.text())
         elincl = str(self.ui.ad_elementsIncLineEdit.text()).strip(' ')
         elexcl = str(self.ui.ad_elementsExclLineEdit.text()).strip(' ')
-        txt = str(self.ui.ad_textsearch.text().strip(' '))
+        txt = str(self.ui.ad_textsearch.text()).strip(' ')
         txt_ex = str(self.ui.ad_textsearch_excl.text()).strip(' ')
         spgr = str(self.ui.SpGrcomboBox.currentText())
         onlythese = self.ui.onlyTheseElementsCheckBox.isChecked()
