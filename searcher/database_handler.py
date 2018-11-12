@@ -426,8 +426,10 @@ class StructureTable():
         req = '''
               INSERT INTO Structure (Id, measurement, filename, path, dataname) VALUES(?, ?, ?, ?, ?)
               '''
-        filename = unicode(filename, errors='ignore')
-        path = unicode(path, errors='ignore')
+        if not isinstance(filename, unicode):
+            filename = unicode(filename, errors='ignore')
+        if not isinstance(path, unicode):
+            path = unicode(path, errors='ignore')
         dataname = dataname.encode(db_enoding, errors='ignore')
         self.database.db_request(req, (structure_id, measurement_id, filename, path, dataname))
         return structure_id

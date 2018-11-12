@@ -585,7 +585,7 @@ class StartStructureDB(QMainWindow):
         Saves the database to a certain file. Therefore I have to close the database.
         """
         status = False
-        save_name = QFileDialog.getSaveFileName(self, caption='Save File', directory='./', filter="*.sqlite, *.*")
+        save_name = QFileDialog.getSaveFileName(self, caption='Save File', directory='./', filter="*.sqlite")
         if save_name:
             if same_file(self.dbfilename, save_name):
                 qe = QMessageBox()
@@ -974,8 +974,7 @@ class StartStructureDB(QMainWindow):
         """
         self.tmpfile = False
         self.close_db()
-        fname = QFileDialog.getOpenFileName(self, caption='Open File', directory='./',
-                                                      filter="*.sqlite")
+        fname = QFileDialog.getOpenFileName(self, caption='Open File', directory='./', filter="*.sqlite")
         if not fname:
             return False
         print("Opened {}.".format(fname))
@@ -1093,7 +1092,7 @@ class StartStructureDB(QMainWindow):
         self.abort_import_button.show()
         n = 1
         num = 0
-        time1 = time.perf_counter()
+        time1 = time.time()
         conn = self.open_apex_db(user, password, host)
         if not conn:
             self.abort_import_button.hide()
@@ -1138,7 +1137,7 @@ class StartStructureDB(QMainWindow):
                     self.abort_import_button.hide()
                     self.decide_import = True
                     break
-        time2 = time.perf_counter()
+        time2 = time.time()
         diff = time2 - time1
         self.progress.hide()
         m, s = divmod(diff, 60)
