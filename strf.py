@@ -395,7 +395,7 @@ class StartStructureDB(QMainWindow):
             if it_results:
                 results = set(it_results).intersection(results)
         elif date_results and not it_results:
-            results = date_results
+            results = set(results).intersection(date_results)
         elif not date_results and it_results:
             results = it_results
         elif it_results and date_results:
