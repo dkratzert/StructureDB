@@ -49,7 +49,7 @@ from pymatgen.core import mat_lattice
 from searcher import constants, misc, filecrawler, database_handler
 from searcher.constants import centering_num_2_letter, centering_letter_2_num
 from searcher.fileparser import Cif
-from searcher.misc import is_valid_cell, elements, same_file, Path
+from searcher.misc import is_valid_cell, elements, same_file, Path, flatten, combine_results
 
 is_windows = False
 if platform.system() == 'Windows':
@@ -167,12 +167,11 @@ class StartStructureDB(QMainWindow):
         self.abort_import_button.clicked.connect(self.abort_import)
         self.ui.moreResultsCheckBox.stateChanged.connect(self.cell_state_changed)
         self.ui.sublattCheckbox.stateChanged.connect(self.cell_state_changed)
-        self.ui.ad_SearchPushButton.clicked.connect(self.advanced_search)
+        self.ui.ad_SearchPushButton.clicked.connect(self.advanced_search2)
         self.ui.ad_ClearSearchButton.clicked.connect(self.show_full_list)
         if is_windows:
             self.ui.CSDpushButton.clicked.connect(self.search_csd_and_display_results)
             # TODO: search on enter key press
-            # self.ui.cellSearchCSDLineEdit.
         # Actions:
         self.ui.actionClose_Database.triggered.connect(self.close_db)
         self.ui.actionImport_directory.triggered.connect(self.import_cif_dirs)
@@ -328,93 +327,60 @@ class StartStructureDB(QMainWindow):
                 return False
             clipboard = QApplication.clipboard()
             clipboard.setText(cell)
-            self.ui.statusbar.showMessage('Copied unit cell {} to clip board.'
-                                          .format(cell))
+            self.ui.statusbar.showMessage('Copied unit cell {} to clip board.'.format(cell))
         return True
 
-    @QtCore.pyqtSlot(name="advanced_search")
-    def advanced_search(self):
+    def advanced_search2(self):
         """
         Combines all the search fields. Collects all includes, all excludes ad calculates
         the difference.
         """
         if not self.structures:
             return
-        excl = []
-        incl = []
-        date_results = []
-        results = []
-        it_results = []
-        cell = is_valid_cell(self.ui.ad_unitCellLineEdit.text())
+        cell = is_valid_cell(str(self.ui.ad_unitCellLineEdit.text()))
         date1 = str(self.ui.dateEdit1.text())
         date2 = str(self.ui.dateEdit2.text())
         elincl = str(self.ui.ad_elementsIncLineEdit.text()).strip(' ')
         elexcl = str(self.ui.ad_elementsExclLineEdit.text()).strip(' ')
         txt = str(self.ui.ad_textsearch.text()).strip(' ')
         txt_ex = str(self.ui.ad_textsearch_excl.text()).strip(' ')
+        if len(txt) >= 2 and "*" not in txt:
+            txt = '*' + txt + '*'
+        if len(txt_ex) >= 2 and "*" not in txt_ex:
+            txt_ex = '*' + txt_ex + '*'
         spgr = str(self.ui.SpGrcomboBox.currentText())
         onlythese = self.ui.onlyTheseElementsCheckBox.isChecked()
+        #
+        results = []
+        cell_results = []
+        spgr_results = []
+        elincl_results = []
+        txt_results = []
+        txt_ex_results = []
+        date_results = []
         try:
             spgr = int(spgr.split()[0])
         except:
             spgr = 0
+        if cell:
+            cell_results = self.search_cell_idlist(cell)
         if spgr:
-            try:
-                it_results = self.structures.find_by_it_number(spgr)
-            except ValueError:
-                pass
+            spgr_results = self.structures.find_by_it_number(spgr)
+        if elincl or elexcl:
+            elincl_results = self.search_elements(elincl, elexcl, onlythese)
+        if txt:
+            txt_results = [i[0] for i in self.structures.find_by_strings(txt)]
+        if txt_ex:
+            txt_ex_results = [i[0] for i in self.structures.find_by_strings(txt_ex)]
         if date1 != date2:
             date_results = self.find_dates(date1, date2)
-        if cell:
-            cellres = self.search_cell_idlist(cell)
-            incl.append(cellres)
-        if elincl:
-            incl.append(self.search_elements(elincl, '', onlythese))
-        if elexcl and not onlythese:
-            incl.append(self.search_elements(elincl, elexcl, onlythese))
-        if txt:
-            if len(txt) >= 2 and "*" not in txt:
-                txt = '*' + txt + '*'
-            idlist = self.structures.find_by_strings(txt)
-            try:
-                incl.append([i[0] for i in idlist])
-            except(IndexError, KeyError):
-                incl.append([idlist])  # only one result
-        if txt_ex:
-            if len(txt_ex) >= 2 and "*" not in txt_ex:
-                txt_ex = '*' + txt_ex + '*'
-            idlist = self.structures.find_by_strings(txt_ex)
-            try:
-                excl.append([i[0] for i in idlist])
-            except(IndexError, KeyError):
-                excl.append([idlist])  # only one result
-        if incl and incl[0]:
-            results = set(incl[0]).intersection(*incl)
-            if date_results:
-                results = set(date_results).intersection(results)
-            if it_results:
-                results = set(it_results).intersection(results)
-        elif date_results and not it_results:
-            results = set(results).intersection(date_results)
-        elif not date_results and it_results:
-            results = it_results
-        elif it_results and date_results:
-            results = set(it_results).intersection(date_results)
-        if not results:
-            self.statusBar().showMessage('Found 0 structures.')
-            return
-        if excl:
-            try:
-                self.display_structures_by_idlist(list(results - set(excl)))
-            except TypeError as e:
-                print(e)
-                print('can not display result in advanced_search.')
-                return
-        else:
-            self.display_structures_by_idlist(list(results))
+        ####################
+        results = combine_results(cell_results, date_results, elincl_results, results, spgr_results,
+                                  txt_ex_results, txt_results)
+        self.display_structures_by_idlist(flatten(list(results)))
 
     def display_structures_by_idlist(self, idlist):
-        #type: (list) -> None
+        # type: (list) -> None
         """
         Displays the structures with id in results list
         """
@@ -538,7 +504,7 @@ class StartStructureDB(QMainWindow):
         except:
             pass
         if copy_on_close:
-            if same_file(self.dbfilename, copy_on_close):
+            if isfile(copy_on_close) and same_file(self.dbfilename, copy_on_close):
                 self.statusBar().showMessage("You can not save to the currently opened file!", msecs=5000)
                 return False
             else:
@@ -1226,6 +1192,7 @@ class StartStructureDB(QMainWindow):
         self.ui.refl2sigmaLineEdit.clear()
         self.ui.uniqReflLineEdit.clear()
         self.ui.lastModifiedLineEdit.clear()
+        self.ui.SHELXplainTextEdit.clear()
 
 
 if __name__ == "__main__":

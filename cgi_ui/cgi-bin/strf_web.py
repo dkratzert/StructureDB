@@ -38,7 +38,7 @@ if pyver[0] == 3 and pyver[1] < 4:
     print("You need Python 3.4 and up in oder to run this proram!")
     sys.exit()
 
-from searcher.constants import centering_letter_2_num
+from searcher.constants import centering_letter_2_num, centering_num_2_letter
 from ccdc.query import get_cccsd_path, search_csd, parse_results
 from cgi_ui.bottle import Bottle, static_file, template, redirect, request, response
 from displaymol.mol_file_writer import MolFile
@@ -46,7 +46,8 @@ from displaymol.sdm import SDM
 from lattice import lattice
 from pymatgen.core import mat_lattice
 from searcher.database_handler import StructureTable
-from searcher.misc import is_valid_cell, get_list_of_elements, flatten, is_a_nonzero_file, format_sum_formula
+from searcher.misc import is_valid_cell, get_list_of_elements, flatten, is_a_nonzero_file, format_sum_formula, \
+    combine_results
 
 """
 TODO:
@@ -69,12 +70,20 @@ def structures_list_data():
 @app.get('/')
 def main():
     """
-    The main web site with html template and space group listing.
+    The main web site with html template.
     """
     response.set_header('Set-Cookie', 'str_id=')
     response.content_type = 'text/html; charset=UTF-8'
-    output = template('./cgi_ui/views/strf_web_template', {"my_ip": site_ip})
+    data = {"my_ip": site_ip,
+            "title": 'StructureFinder',
+            'host' : host}
+    output = template('./cgi_ui/views/strf_web', data)
     return output
+
+
+@app.get('/dbfile.sqlite')
+def get_dbfile():
+    return Path(dbfilename).read_bytes()
 
 
 @app.get("/cellsrch")
@@ -109,6 +118,10 @@ def adv():
     cell_search = request.GET.cell_search
     txt_in = request.GET.text_in
     txt_out = request.GET.text_out
+    if len(txt_in) >= 2 and "*" not in txt_in:
+        txt_in = '*' + txt_in + '*'
+    if len(txt_out) >= 2 and "*" not in txt_out:
+        txt_out = '*' + txt_out + '*'
     more_results = (request.GET.more == "true")
     sublattice = (request.GET.supercell == "true")
     onlyelem = (request.GET.onlyelem == "true")
@@ -116,9 +129,9 @@ def adv():
     structures = StructureTable(dbfilename)
     print("Advanced search: elin:", elincl, 'elout:', elexcl, date1, '|', date2, '|', cell_search, 'txin:', txt_in,
           'txout:', txt_out, '|', 'more:', more_results, 'Sublatt:', sublattice, 'It-num:', it_num, 'only:', onlyelem)
-    ids = advanced_search(cellstr=cell_search, elincl=elincl, elexcl=elexcl, txt_in=txt_in, txt_out=txt_out,
+    ids = advanced_search(cellstr=cell_search, elincl=elincl, elexcl=elexcl, txt=txt_in, txt_ex=txt_out,
                           sublattice=sublattice, more_results=more_results, date1=date1, date2=date2,
-                          structures=structures, it_num=it_num, onlyelem=onlyelem)
+                          structures=structures, it_num=it_num, onlythese=onlyelem)
     print("--> Got {} structures from Advanced search.".format(len(ids)))
     return get_structures_json(structures, ids)
 
@@ -219,11 +232,6 @@ def cellsearch():
             return 'false'
 
 
-@app.route('/cgi-bin/strf_web.cgi')
-def redirect_old_path():
-    redirect('/')
-
-
 @app.route('/favicon.ico')
 def redirect_to_favicon():
     redirect('/static/favicon.ico')
@@ -244,18 +252,25 @@ def show_cellcheck():
             centering = cif_dic['_space_group_centring_type']
         except KeyError:
             centering = ''
-        #formula = structures.get_calc_sum_formula(str_id)
-        #print(formula)
+        # formula = structures.get_calc_sum_formula(str_id)
+        # print(formula)
         cellstr = '{:>8.3f} {:>8.3f} {:>8.3f} {:>8.3f} {:>8.3f} {:>8.3f}'.format(*cell)
     else:
         cellstr = ''
-        #formula = ''
+        # formula = ''
     if centering:
-        cent = centering_letter_2_num[centering]
+        try:
+            cent = centering_letter_2_num[centering]
+        except KeyError:  # mostly value of '?'
+            cent = 0
     else:
         cent = 0
     response.content_type = 'text/html; charset=UTF-8'
-    output = template('./cgi_ui/views/cellcheckcsd', {"my_ip": site_ip, 'str_id': cellstr, 'cent': cent})
+    data = {"my_ip" : site_ip,
+            "title" : 'StructureFinder',
+            'str_id': cellstr, 'cent': cent,
+            'host'  : host}
+    output = template('./cgi_ui/views/cellcheckcsd', data)
     # 'formula': formula_dict_to_elements(formula)}
     return output
 
@@ -270,12 +285,10 @@ def search_cellcheck_csd():
     if not cell:
         return {}
     cent = request.POST.centering
-    centering = {0: 'P', 1: 'A', 2: 'B', 3: 'C', 4: 'F', 5: 'I', 6: 'R'}
-    c = centering[int(cent)]
     if len(cell) < 6:
         return {}
     if cmd == 'get-records' and len(cell.split()) == 6:
-        xml = search_csd(cell.split(), centering=c)
+        xml = search_csd(cell.split(), centering=centering_num_2_letter[int(cent)])
         # print(xml)
         try:
             results = parse_results(xml)  # results in a dictionary
@@ -615,72 +628,42 @@ def find_dates(structures, date1, date2):
     return result
 
 
-def advanced_search(cellstr, elincl, elexcl, txt_in, txt_out, sublattice, more_results,
+def advanced_search(cellstr, elincl, elexcl, txt, txt_ex, sublattice, more_results,
                     date1 = None, date2 = None, structures = None,
-                    it_num = None, onlyelem = False):
+                    it_num = None, onlythese = False):
     """
     Combines all the search fields. Collects all includes, all excludes ad calculates
     the difference.
     """
-    excl = []
-    incl = []
-    date_results = []
+    #
     results = []
-    it_results = []
-    cell = []
-    if cellstr:
-        cell = is_valid_cell(cellstr)
+    cell_results = []
+    spgr_results = []
+    elincl_results = []
+    txt_results = []
+    txt_ex_results = []
+    date_results = []
+    cell = is_valid_cell(cellstr)
+    try:
+        spgr = int(it_num.split()[0])
+    except:
+        spgr = 0
     if cell:
-        cellres = find_cell(structures, cell, sublattice=sublattice, more_results=more_results)
-        incl.append(cellres)
-    if elincl:  # and onlyelem: <- do not need to add onlyelement, because it is given to search_elements()
-        incl.append(search_elements(structures, elincl, '', onlyelem))
-    if elexcl and not onlyelem:
-        incl.append(search_elements(structures, elincl, elexcl, onlyelem))
+        cell_results = find_cell(structures, cell, sublattice=sublattice, more_results=more_results)
+    if spgr:
+        spgr_results = structures.find_by_it_number(spgr)
+    if elincl or elexcl:
+        elincl_results = search_elements(structures, elincl, elexcl, onlythese)
+    if txt:
+        txt_results = [i[0] for i in structures.find_by_strings(txt)]
+    if txt_ex:
+        txt_ex_results = [i[0] for i in structures.find_by_strings(txt_ex)]
     if date1 != date2:
         date_results = find_dates(structures, date1, date2)
-    if it_num:
-        try:
-            it_results = structures.find_by_it_number(int(it_num))
-        except ValueError:
-            pass
-    if txt_in:
-        if len(txt_in) >= 2 and "*" not in txt_in:
-            txt_in = '*' + txt_in + '*'
-        idlist = structures.find_by_strings(txt_in)
-        try:
-            incl.append([i[0] for i in idlist])
-        except(IndexError, KeyError):
-            incl.append([idlist])  # only one result
-    if txt_out:
-        if len(txt_out) >= 2 and "*" not in txt_out:
-            txt_out = '*' + txt_out + '*'
-        idlist = structures.find_by_strings(txt_out)
-        try:
-            excl.append([i[0] for i in idlist])
-        except(IndexError, KeyError):
-            excl.append([idlist])  # only one result
-    if incl and incl[0]:
-        results = set(incl[0]).intersection(*incl)
-        if date_results:
-            results = set(date_results).intersection(results)
-        if it_results:
-            results = set(it_results).intersection(results)
-    elif date_results and not it_results:
-        results = set(results).intersection(date_results)
-    elif not date_results and it_results:
-        results = it_results
-    elif it_results and date_results:
-        results = set(it_results).intersection(date_results)
-    if excl:
-        # excl list should not be in the resukts at all
-        try:
-            return list(results - set(flatten(excl)))
-        except TypeError as e:
-            print(e)
-            print('can not display result in advanced_search.')
-            return []
-    return list(results)
+    ####################
+    results = combine_results(cell_results, date_results, elincl_results, results, spgr_results,
+                              txt_ex_results, txt_results)
+    return flatten(list(results))
 
 
 if __name__ == "__main__":

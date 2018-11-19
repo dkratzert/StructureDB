@@ -83,6 +83,10 @@ else:
             os.remove(dbf)
         except OSError:
             pass
+        except Exception:
+            print('Could not acess database file "{}". Is it used elsewhere?'.format(dbfilename))
+            print('Giving up...')
+            sys.exit()
     for p in args.dir:
         # the command line version
         db = DatabaseRequest(dbfilename)
