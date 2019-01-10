@@ -5,32 +5,34 @@
 <div class="container" id="dropZone">
 <h2>StructureFinder</h2>
 
-
-<a type="button" class="btn btn-primary btn-sm" data-toggle="collapse" data-target="#adv-search"
-        id="toggle_advsearch-button">Advanced Search</a>
-<a type="button" class="btn btn-warning btn-sm" id="all_structures">Show All</a>
-<a type="button" class="btn btn-default btn-sm {{!'' if host == '127.0.0.1' else 'invisible'}}" id="cellsearchcsd_button"
-   href="http://{{my_ip}}/csd" target="_blank">CellCheckCSD</a>
-
+<div class="row">
+    <button type="button" class="btn btn-primary" data-toggle="collapse" data-target="#adv-search"
+            id="toggle_advsearch-button">Advanced Search</button>
+    <a type="button" class="btn btn-warning btn-sm" id="all_structures">Show All</a>
+    <a type="button" class="btn btn-default btn-sm {{!'' if host == '127.0.0.1' else 'invisible'}}" id="cellsearchcsd_button"
+       href="http://{{my_ip}}/csd" target="_blank">CellCheckCSD</a>
+</div>
 <!-- ------------  The collapsible for simple search options: -----------------  -->
 <div class="row" id="mainsearch">
-    <div class="column col-sm-6">
+    <div class="column col-6">
         <div class="input-group input-group-sm">
-            <span class="input-group-addon" data-toggle="tooltip" title="Search for a Unit Cell">Unit Cell</span>
+            <div class="input-group-prepend">
+                <span class="input-group-text" data-toggle="tooltip" title="Search for a Unit Cell">Unit Cell</span>
+            </div>
             <input type="text" class="form-control" placeholder="a  b  c  &alpha;  &beta;  &gamma;    (or drag&drop .p4p, .res, cif file)" style="font-style: italic" id="smpl_cellsrch" name="cell">
-            <div class="input-group-sm input-group-btn">
-            <button class="btn btn-default" type="submit" id="smpl_cellsrchbutton">
+            <div class="input-group-append">
+            <button class="btn btn-primary" type="submit" id="smpl_cellsrchbutton">
                 <i class="glyphicon glyphicon-search"></i>
             </button>
             </div>
         </div>
     </div>
-    <div class="column col-sm-6">
+    <div class="column col-6">
         <div class="input-group input-group-sm">
             <span class="input-group-addon" data-toggle="tooltip" title="Search for a Unit Cell">Text</span>
             <input type="text" class="form-control" placeholder="Search Text" id="smpl_textsrch" name="text">
             <div class="input-group-sm input-group-btn">
-                <button class="btn btn-default" type="submit" id="smpl_textsrchbutton">
+                <button class="btn btn-primary" type="submit" id="smpl_textsrchbutton">
                     <i class="glyphicon glyphicon-search"></i>
                 </button>
             </div>
@@ -49,10 +51,10 @@
                 <a href="#" class="badge" id="more_info_badge">info</a>
                 <span>&nbsp;&nbsp;</span>
                 <input title="More cell search results" class="checkbox-addon" type="checkbox"
-                       value="" id="more_results">More cell search results
+                       value="" id="more_results" aria-label="more results">More cell search results
                 <span>&nbsp;&nbsp;</span>
                 <input title="Find supercells" type="checkbox" class="checkbox-addon-sm"
-                       value="" id="supercells">Find supercells
+                       value="" id="supercells" aria-label="find supercells">Find supercells
                 <span>&nbsp;&nbsp;</span>
                 %include('cgi_ui/views/spgr.tpl')
                 Find by space group
