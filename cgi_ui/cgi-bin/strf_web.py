@@ -348,10 +348,10 @@ def get_structures_json(structures: StructureTable, ids: (list, tuple) = None, s
 def get_cell_parameters(structures: StructureTable, strid: str) -> str:
     """
     Resturns unit cell parameters as html formated string.
+    The hidden cell is there to be able to copy it in the clip board.
     """
     c = structures.get_cell_by_id(strid)
-    cstr = """<b>Unit Cell:</b>&nbsp;&nbsp; 
-                      <i>a</i> = {0:>8.3f}&nbsp;&angst;,&nbsp;
+    cstr = """        <i>a</i> = {0:>8.3f}&nbsp;&angst;,&nbsp;
                       <i>b</i> = {1:>8.3f}&nbsp;&angst;,&nbsp;
                       <i>c</i> = {2:>8.3f}&nbsp;&angst;,&nbsp; 
                       <i>&alpha;</i> = {3:>8.3f}&deg;,&nbsp;

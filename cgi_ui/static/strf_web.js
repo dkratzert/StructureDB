@@ -392,7 +392,7 @@ $(document).ready(function($){
         $("#cell_copy_btn").addClass('invisible');
         $("#growCheckBoxgroup").addClass('invisible');
         $("#jsmolcolumn").addClass('invisible');
-        //$("#residualstable1").addClass('invisible');
+        $("#jsmolMaincolumn").addClass('invisible');
         //$("#residualstable2").addClass('invisible');
         //$("#residuals").addClass('invisible');
         document.getElementById("cellrow").innerHTML = "Found " + numresult + " structures";
@@ -405,8 +405,9 @@ $(document).ready(function($){
         jsmolcol.html(jmol._code);
         jmol.__loadModel(atoms);
         var tbl = $('#residualstable2');
-        jsmolcol.css("height", tbl.height()-20);
+        //jsmolcol.css("height", tbl.height()-20);
         jsmolcol.removeClass('invisible');
+        $("#jsmolMaincolumn").removeClass('invisible');
     }
     
     function showprop(idstr) {
