@@ -21,20 +21,18 @@
             </div>
             <input type="text" class="form-control" placeholder="a  b  c  &alpha;  &beta;  &gamma;    (or drag&drop .p4p, .res, cif file)" style="font-style: italic" id="smpl_cellsrch" name="cell">
             <div class="input-group-append">
-            <button class="btn btn-primary" type="submit" id="smpl_cellsrchbutton">
-                <i class="glyphicon glyphicon-search"></i>
-            </button>
+                <button class="btn btn-primary ml-0" type="submit" id="smpl_cellsrchbutton">Search</button>
             </div>
         </div>
     </div>
     <div class="column col-6">
         <div class="input-group input-group-sm">
-            <span class="input-group-addon" data-toggle="tooltip" title="Search for a Unit Cell">Text</span>
+            <div class="input-group-prepend">
+                <span class="input-group-text" data-toggle="tooltip" title="Search for a Unit Cell">Text</span>
+            </div>
             <input type="text" class="form-control" placeholder="Search Text" id="smpl_textsrch" name="text">
-            <div class="input-group-sm input-group-btn">
-                <button class="btn btn-primary" type="submit" id="smpl_textsrchbutton">
-                    <i class="glyphicon glyphicon-search"></i>
-                </button>
+            <div class="input-group-append">
+                <button class="btn btn-primary ml-0 mr-0" type="submit" id="smpl_textsrchbutton">Search</button>
             </div>
         </div>
     </div>
@@ -149,7 +147,7 @@
 
 <!-- End of collapsible for search options. -->
 <div class="row">
-    <div class="column col-sm-12">
+    <div class="column col-12">
         <div id="mygrid" style="height: 450px"></div>
     </div>
 </div>
