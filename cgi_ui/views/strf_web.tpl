@@ -101,28 +101,38 @@
 
         <div class="row">
             <div class="col-6">
-                    <div class="form-row">
-                        <div class="col">
-                            <div class="input-group input-group-sm mb-2 mr-sm-2">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text input-group-sm" data-toggle="tooltip" title="">Unit Cell</span>
-                                </div>
-                                <input type="text" class="form-control form-control-sm" style="font-style: italic"
-                                       id="cell_adv" placeholder="a b c &alpha; &beta; &gamma;">
+                <div class="form-row">
+                    <div class="col">
+                        <div class="input-group input-group-sm mb-2 mr-sm-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text input-group-sm" data-toggle="tooltip"
+                                      title="">Unit Cell</span>
                             </div>
+                            <input type="text" class="form-control form-control-sm" style="font-style: italic"
+                                   id="cell_adv" placeholder="a b c &alpha; &beta; &gamma;">
                         </div>
                     </div>
+                </div>
             </div>
             <div class="col-6">
-                <div class="input-group input-group-sm w2ui-field">
-                <span class="input-group-addon" data-toggle="tooltip"
-                      title="Search for structures that were modified between two dates">Date from</span>
-                    <input class="input-sm" title="Date" type="text" id="date1" style="width: 95%">
-                    <span class="input-group-addon">to</span>
-                    <input class="input-sm" title="Date" type="text" id="date2" style="width: 95%">
-                    <a type="button" class="input-group-addon"
-                       data-toggle="tooltip" title="Search for structures modified during the last month."
-                       id="lastmsearchlink"> From Last Month</a>
+                <div class="form-row">
+                    <div class="col">
+                        <div class="input-group input-group-sm w2ui-field">
+
+                            <div class="input-group-prepend" data-toggle="tooltip">
+                                <span class="input-group-text input-group-sm" data-toggle="tooltip"
+                                      title="">Date from</span>
+                            </div>
+                            <input type="text" class="form-control form-control-sm" style="font-style: italic"
+                                   id="date1" placeholder="">
+
+                            <span class="input-group-text input-group-sm">to</span>
+                            <input class="input-sm" title="Date" type="text" id="date2" style="width: 95%">
+                            <a type="button" class="input-group-addon"
+                               data-toggle="tooltip" title="Search for structures modified during the last month."
+                               id="lastmsearchlink"> From Last Month</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
