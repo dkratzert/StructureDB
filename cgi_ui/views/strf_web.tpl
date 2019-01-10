@@ -48,56 +48,72 @@
     <!-- ---------------------    End of simple search     ----------------------    -->
 
 
-    <!-- The collapsible for Advanced search options: -->
+    <!------ Advanced search collapsible: -------->
     <div id="adv-search" class="collapse">
         <div class="row">
-            <div class="column col-sm-12">
+            <div class="column col-12">
                 <div class="btn-group btn-group-sm" role="group">
-                    <a href="#" class="badge" id="more_info_badge">info</a>
-                    <span>&nbsp;&nbsp;</span>
-                    <input title="More cell search results" class="checkbox-addon" type="checkbox"
-                           value="" id="more_results" aria-label="more results">More cell search results
-                    <span>&nbsp;&nbsp;</span>
-                    <input title="Find supercells" type="checkbox" class="checkbox-addon-sm"
-                           value="" id="supercells" aria-label="find supercells">Find supercells
-                    <span>&nbsp;&nbsp;</span>
-                    %include('cgi_ui/views/spgr.tpl')
-                    Find by space group
+                    <span class="badge badge-secondary mr-2" id="more_info_badge">Info</span>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="more_results" value="">
+                        <label class="form-check-label" for="more_results">More cell search results</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="supercells" value="">
+                        <label class="form-check-label" for="supercells">Find supercells</label>
+                    </div>
+
+                    <div class="d-inline">
+                        %include('cgi_ui/views/spgr.tpl')
+                        Find by space group
+                    </div>
                 </div>
             </div>
         </div>
 
         <div id="more-cell-info" class="collapse">
-            <div class="row">
-                <div class="col-sm-6">
-                    <b>regular</b><br>
-                    volume: &plusmn;3 %, length: 0.06&nbsp;&angst;, angle: 1.0&deg;<br>
-                    <br>
-                    <b>more results option</b><br>
-                    volume: &plusmn;9 &percnt;, length: 0.2&nbsp;&angst;, angle: 2.0&deg;<br>
-                </div>
-                <div class="col-sm-6">
-                    <b>Supercells</b>
-                    <br>
-                    Find also unit cells of 1, 2, 3, 4, 6, 8, 10 times the volume.
-                    <br>
-                    <b>Space group search</b>
-                    <br>
-                    Be aware that not every cif file before SHELXL-2013 has a space group number. These will not be
-                    found.
+
+            <div class="card mb-2">
+                <div class="card-body p-1">
+                    <div class="row">
+                        <div class="col-6">
+                            <b>regular</b><br>
+                            volume: &plusmn;3 %, length: 0.06&nbsp;&angst;, angle: 1.0&deg;<br>
+                            <br>
+                            <b>more results option</b><br>
+                            volume: &plusmn;9 &percnt;, length: 0.2&nbsp;&angst;, angle: 2.0&deg;<br>
+                        </div>
+                        <div class="col-6">
+                            <b>Supercells</b>
+                            <br>
+                            Find also unit cells of 1, 2, 3, 4, 6, 8, 10 times the volume.
+                            <br>
+                            <b>Space group search</b>
+                            <br>
+                            Be aware that not every cif file before SHELXL-2013 has a space group number. These will not
+                            be
+                            found.
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="row">
-            <div class="column col-sm-6">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-addon">Uni Cell</span>
-                    <input type="text" class="form-control form-sm" style="font-style: italic"
-                           placeholder="a b c &alpha; &beta; &gamma;" id="cell_adv">
-                </div>
+            <div class="col-6">
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="input-group input-group-sm mb-2 mr-sm-2">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text input-group-sm" data-toggle="tooltip" title="">Unit Cell</span>
+                                </div>
+                                <input type="text" class="form-control form-control-sm" style="font-style: italic"
+                                       id="cell_adv" placeholder="a b c &alpha; &beta; &gamma;">
+                            </div>
+                        </div>
+                    </div>
             </div>
-            <div class="column col-sm-6">
+            <div class="col-6">
                 <div class="input-group input-group-sm w2ui-field">
                 <span class="input-group-addon" data-toggle="tooltip"
                       title="Search for structures that were modified between two dates">Date from</span>
