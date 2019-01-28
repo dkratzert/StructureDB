@@ -5,8 +5,8 @@ Created on 09.02.2015
 
  ----------------------------------------------------------------------------
 * "THE BEER-WARE LICENSE" (Revision 42):
-* <daniel.kratzert@uni-freiburg.de> wrote this file. As long as you retain this 
-* notice you can do whatever you want with this stuff. If we meet some day, and 
+* <daniel.kratzert@uni-freiburg.de> wrote this file. As long as you retain this
+* notice you can do whatever you want with this stuff. If we meet some day, and
 * you think this stuff is worth it, you can buy me a beer in return.
 * ----------------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ class MyZipReader(MyZipBase):
                         yield zfile.read(name).decode('utf-8', 'ignore').splitlines()
         except Exception as e:
             #print("Error: '{}' in file {}".format(e, self.filepath.encode(encoding='utf-8', errors='ignore')))
-            #print(e, self.filepath)  # filepath is not utf-8 save
+            print(e, self.filepath)  # filepath is not utf-8 save
             yield []
 
 
@@ -214,7 +214,7 @@ def put_files_in_db(self=None, searchpath = './', excludes = None, lastid = 1,
                                          structure_id=str(lastid), structures=structures)
                     if not tst:
                         if DEBUG:
-                            print('cif file not added:', fullpath) 
+                            print('cif file not added:', fullpath)
                         continue
                     if self:
                         self.add_table_row(name=z.cifname, path=fullpath,
@@ -320,7 +320,8 @@ def fill_db_tables(cif, filename, path, structure_id, structures):
             volume = str(vol_unitcell(a, b, c, alpha, beta, gamma))
         except ValueError:
             volume = ''
-    measurement_id = structures.fill_measuremnts_table(filename, structure_id)
+    #measurement_id = structures.fill_measuremnts_table(filename, structure_id)
+    measurement_id = 1
     structures.fill_structures_table(path, filename, structure_id, measurement_id, cif.cif_data['data'])
     structures.fill_cell_table(structure_id, a, b, c, alpha, beta, gamma, volume)
     sum_from_dict = {}
@@ -379,7 +380,7 @@ def fill_db_with_res_data(res, filename, path, structure_id, structures, options
             continue
         if at.element.lower() == 'cnt':  # Do not add Shelxle centroids
             continue
-        structures.fill_atoms_table(structure_id, 
+        structures.fill_atoms_table(structure_id,
                                     at.name,
                                     at.element.capitalize(),
                                     at.x,

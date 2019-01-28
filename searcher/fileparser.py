@@ -4,8 +4,8 @@ Created on 09.02.2015
 
  ----------------------------------------------------------------------------
 * "THE BEER-WARE LICENSE" (Revision 42):
-* <daniel.kratzert@uni-freiburg.de> wrote this file. As long as you retain this 
-* notice you can do whatever you want with this stuff. If we meet some day, and 
+* <daniel.kratzert@uni-freiburg.de> wrote this file. As long as you retain this
+* notice you can do whatever you want with this stuff. If we meet some day, and
 * you think this stuff is worth it, you can buy me a beer in return.
 * ----------------------------------------------------------------------------
 
@@ -190,7 +190,7 @@ class Cif(object):
                 if line == "data_global":
                     continue
                 if not data:
-                    name = line.split('_')[1].strip('\n\r')
+                    name = '_'.join(line.split('_')[1:])
                     self.cif_data['data'] = name
                     data = True
                     continue
@@ -217,8 +217,8 @@ class Cif(object):
                 continue
             # Leave out hkl frames:
             if hkl:
-                break
-                # continue  # use continue if data is behind hkl
+                # break
+                continue  # use continue if data should be parsed behind hkl
             if line.lstrip()[0] == ";" and hkl:
                 hkl = False
                 continue

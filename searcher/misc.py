@@ -3,8 +3,8 @@ Created on 09.02.2015
 
  ----------------------------------------------------------------------------
 * "THE BEER-WARE LICENSE" (Revision 42):
-* <daniel.kratzert@uni-freiburg.de> wrote this file. As long as you retain this 
-* notice you can do whatever you want with this stuff. If we meet some day, and 
+* <daniel.kratzert@uni-freiburg.de> wrote this file. As long as you retain this
+* notice you can do whatever you want with this stuff. If we meet some day, and
 * you think this stuff is worth it, you can buy me a beer in return.
 * ----------------------------------------------------------------------------
 
@@ -149,7 +149,7 @@ def is_a_nonzero_file(filename):
 
 
 def get_error_from_value(value):
-    """ 
+    """
     Returns the error value from a number string.
     :type value: str
     :rtype: str
@@ -485,9 +485,3 @@ def combine_results(cell_results, date_results, elincl_results, results, spgr_re
         else:
             results = date_results
     return results
-
-
-if __name__ == '__main__':
-    pass
-
-

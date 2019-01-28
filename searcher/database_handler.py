@@ -369,14 +369,14 @@ class StructureTable():
         if ids:
             ids = tuple(ids)
             if len(ids) > 1:
-                req = '''SELECT Structure.Id AS recid, Structure.measurement, Structure.path, Structure.filename, 
+                req = '''SELECT Structure.Id AS recid, Structure.path, Structure.filename, 
                              Structure.dataname FROM Structure WHERE Structure.Id in {}'''.format(ids)
             else:
                 # only one id
-                req = '''SELECT Structure.Id AS recid, Structure.measurement, Structure.path, Structure.filename, 
+                req = '''SELECT Structure.Id AS recid, Structure.path, Structure.filename, 
                             Structure.dataname FROM Structure WHERE Structure.Id == {}'''.format(ids[0])
         elif all:
-            req = '''SELECT Structure.Id AS recid, Structure.measurement, Structure.path, Structure.filename, 
+            req = '''SELECT Structure.Id AS recid, Structure.path, Structure.filename, 
                       Structure.dataname FROM Structure'''
         else:
             return {}
@@ -721,6 +721,8 @@ class StructureTable():
         optimize_queries = """INSERT INTO txtsearch(txtsearch) VALUES('optimize'); """
         self.database.cur.execute(populate_index)
         self.database.cur.execute(optimize_queries)
+        # add an index to find cells faster
+        self.database.cur.execute("""CREATE INDEX idx_volume ON cell (volume)""")
 
     def get_row_as_dict(self, structure_id):
         """
@@ -927,7 +929,7 @@ class StructureTable():
 
     def find_biggest_cell(self):
         """
-        Finds the structure with the biggest cell in the db. This should be done by volume, but was 
+        Finds the structure with the biggest cell in the db. This should be done by volume, but was
         just for fun...
         >>> db = StructureTable('./test-data/test.sql')
         >>> db.find_biggest_cell()
