@@ -24,31 +24,36 @@ atoms = ('D', 'H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg',
          'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa',
          'U')
 
-celltxt = r"""
-    <html><head/><body>
-    <table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:50px; margin-right:0px;" 
-    cellspacing="1" cellpadding="1">
-        <tr>
-            <td><p align="left"><span style=" font-style:italic;">a</span> = </p></td>
-            <td><p align="right">{:>8.3f} &#8491;, </p></td>
-            <td><p align="right"><span style="font-style:italic;">&alpha;</span> = </p></td> 
-            <td><p align="right">{:>8.3f}&deg; </p></td>
-        </tr>
-        <tr>
-            <td><p align="left"><span style=" font-style:italic;">b</span> = </p></td>
-            <td><p align="right">{:>8.3f} &#8491;, </p></td>
-            <td><p align="right"><span style=" font-style:italic;">&beta;</span> = </p></td> 
-            <td><p align="right">{:>8.3f}&deg; </p></td>
-        </tr>
-        <tr>
-            <td><p align="left"><span style=" font-style:italic;">c</span> = </p></td>
-            <td><p align="right">{:>8.3f} &#8491;, </p></td>
-            <td><p align="right"><span style=" font-style:italic;">&gamma;</span> = </p></td> 
-            <td><p align="right">{:>8.3f}&deg; </p></td>
-        </tr>
-   </table>
-   <div style="margin-left:50px">
-    Volume = {:8.2f} &#8491;<sup>3</sup>, <b>{}</b>
+celltxt = """
+    <html>
+    <body>
+    <div align="right">
+        <table border="0" cellspacing="1" cellpadding="1" style='font-size: 12px'>
+            <tr>
+                <td align='right'><i>a</i> = </td>
+                <td align='right'>{:>7.3f} Å,</td>
+                <td align='right'><i>&alpha;</i> = </td> 
+                <td align='right'>{:>7.3f}°</td>
+            </tr>
+            <tr>
+                <td align='right'><i>b</i> = </td>
+                <td align='right'>{:>7.3f} Å,</td>
+                <td align='right'><i>&beta;</i> = </td> 
+                <td align='right'>{:>7.3f}°</td>
+            </tr>
+            <tr>
+                <td align='right'><i>c</i> = </td>
+                <td align='right'>{:>7.3f} Å,</td>
+                <td align='right'><i>&gamma;</i> = </td> 
+                <td align='right'>{:>7.3f}°</td>
+            </tr>
+       </table>
    </div>
-   </body></html>
+   <div align='right' style="margin-left:0">
+    Volume = {:8.2f} Å<sup>3</sup>, <b>{}</b>
+   </div>
+   </body>
+   </html>
     """
+
+

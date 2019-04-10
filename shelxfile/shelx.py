@@ -917,7 +917,7 @@ class ShelXFile():
     def elem2sfac(self, atom_type):
         """
         returns an sfac-number for the element given in "atom_type"
-        >>> shx = ShelXFile('tests/p21c.res')
+        >>> shx = ShelXFile('test-data/p21c.res')
         >>> shx.elem2sfac('O')
         3
         >>> shx.elem2sfac('c')
@@ -933,7 +933,7 @@ class ShelXFile():
         """
         returns an element and needs an sfac-number
         :param sfacnum: string like '2'
-        >>> shx = ShelXFile('tests/p21c.res')
+        >>> shx = ShelXFile('test-data/p21c.res')
         >>> shx.sfac2elem(1)
         'C'
         >>> shx.sfac2elem(2)

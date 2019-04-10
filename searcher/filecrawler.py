@@ -15,12 +15,15 @@ Created on 09.02.2015
 import fnmatch
 import os
 import re
+import sys
 import tarfile
 import time
 import zipfile
 
-from lattice.lattice import vol_unitcell
+from searcher import database_handler
 from searcher.fileparser import Cif
+from searcher.misc import get_error_from_value, vol_unitcell
+from shelxfile.dsrmath import frac_to_cart
 from shelxfile.shelx import ShelXFile
 
 DEBUG = False
@@ -128,6 +131,11 @@ def put_files_in_db(self=None, searchpath = './', excludes = None, lastid = 1,
                     structures=None, fillcif=True, fillres=True):
     """
     Imports files from a certain directory
+    :param self: self
+    :param structures: database instance
+    :param searchpath: where to search for files.
+    :param lastid: id of last dbentry.
+    :param excludes: list of excluded directory names.
     :param fillres: Should it index res files or not.
     :param fillcif: Should it index cif files or not.
     """
@@ -161,7 +169,7 @@ def put_files_in_db(self=None, searchpath = './', excludes = None, lastid = 1,
             self.progressbar(prognum, 0, 20)
         # This is really ugly copy&pase code. TODO: refractor this:
         if name.endswith('.cif') and fillcif:
-            with open(fullpath, mode='r') as f:
+            with open(fullpath, mode='r', encoding='ascii', errors="ignore") as f:
                 try:
                     cifok = cif.parsefile(f.readlines())
                     if not cifok:
@@ -186,17 +194,17 @@ def put_files_in_db(self=None, searchpath = './', excludes = None, lastid = 1,
                     prognum += 1
             continue
         if (name.endswith('.zip') or name.endswith('.tar.gz') or name.endswith('.tar.bz2')
-                or name.endswith('.tgz')) and fillcif:
+            or name.endswith('.tgz')) and fillcif:
             if fullpath.endswith('.zip'):
                 # MyZipReader defines .cif ending:
                 z = MyZipReader(fullpath)
             else:
                 z = MyTarReader(fullpath)
-            for zippedfile in z:              # the list of cif files in the zip file
+            for zippedfile in z:  # the list of cif files in the zip file
                 # Important here to re-initialize empty cif dictionary:
                 cif = Cif(options=options)
                 omit = False
-                for ex in excluded_names:          # remove excludes
+                for ex in excluded_names:  # remove excludes
                     if re.search(ex, z.cifpath, re.I):
                         omit = True
                 if omit:
@@ -217,7 +225,7 @@ def put_files_in_db(self=None, searchpath = './', excludes = None, lastid = 1,
                             print('cif file not added:', fullpath)
                         continue
                     if self:
-                        self.add_table_row(name=z.cifname, path=fullpath,
+                        self.add_table_row(filename=z.cifname, path=fullpath,
                                            data=cif.cif_data['data'], structure_id=str(lastid))
                     zipcifs += 1
                     cifcount += 1
@@ -245,7 +253,7 @@ def put_files_in_db(self=None, searchpath = './', excludes = None, lastid = 1,
                     print('res file not added:', fullpath)
                 continue
             if self:
-                self.add_table_row(name=name, path=fullpath, data=name, structure_id=str(lastid))
+                self.add_table_row(filename=name, path=fullpath, data=name, structure_id=str(lastid))
             lastid += 1
             num += 1
             rescount += 1
@@ -271,7 +279,7 @@ def put_files_in_db(self=None, searchpath = './', excludes = None, lastid = 1,
     print(tmessage.format(num - 1, int(h), int(m), s, zipcifs, cifcount, rescount))
     if self:
         self.ui.statusbar.showMessage(tmessage.format(num - 1, int(h), int(m), s, zipcifs, cifcount, rescount))
-    return lastid-1
+    return lastid - 1
 
 
 def fill_db_tables(cif, filename, path, structure_id, structures):
@@ -293,34 +301,21 @@ def fill_db_tables(cif, filename, path, structure_id, structures):
     _atom_site_disorder_assembly
     _atom_site_disorder_group
     """
-    a = cif._cell_length_a
-    b = cif._cell_length_b
-    c = cif._cell_length_c
-    alpha = cif._cell_angle_alpha
-    beta = cif._cell_angle_beta
-    gamma = cif._cell_angle_gamma
-    volume = cif._cell_volume
+    a, aerror = get_error_from_value(cif._cell_length_a)
+    b, berror = get_error_from_value(cif._cell_length_b)
+    c, cerror = get_error_from_value(cif._cell_length_c)
+    alpha, alphaerror = get_error_from_value(cif._cell_angle_alpha)
+    beta, betaerror = get_error_from_value(cif._cell_angle_beta)
+    gamma, gammaerror = get_error_from_value(cif._cell_angle_gamma)
+    volume, volerror = get_error_from_value(cif._cell_volume)
     if not all((a, b, c, alpha, beta, gamma)):
         return False
     if not volume or volume == "?":
-        # TODO: bring get_error_from_value() to here:
         try:
-            if isinstance(a, basestring):
-                a = float(a.split('(')[0])
-            if isinstance(b, basestring):
-                b = float(b.split('(')[0])
-            if isinstance(c, basestring):
-                c = float(c.split('(')[0])
-            if isinstance(alpha, basestring):
-                alpha = float(alpha.split('(')[0])
-            if isinstance(beta, basestring):
-                beta = float(beta.split('(')[0])
-            if isinstance(gamma, basestring):
-                gamma = float(gamma.split('(')[0])
             volume = str(vol_unitcell(a, b, c, alpha, beta, gamma))
         except ValueError:
             volume = ''
-    #measurement_id = structures.fill_measuremnts_table(filename, structure_id)
+    # measurement_id = structures.fill_measuremnts_table(filename, structure_id)
     measurement_id = 1
     structures.fill_structures_table(path, filename, structure_id, measurement_id, cif.cif_data['data'])
     structures.fill_cell_table(structure_id, a, b, c, alpha, beta, gamma, volume)
@@ -347,17 +342,18 @@ def fill_db_tables(cif, filename, path, structure_id, structures):
             except IndexError:
                 continue
             try:
+                xc, yc, zc = frac_to_cart([x[2], x[3], x[4]], [a, b, c, alpha, beta, gamma])
                 structures.fill_atoms_table(structure_id, name, atom_type_symbol,
-                                        x[2], x[3], x[4], occu, disord)
+                                            x[2], x[3], x[4], occu, disord, xc, yc, zc)
             except ValueError:
                 pass
-                #print(cif.cif_data['data'], path, filename)
+                # print(cif.cif_data['data'], path, filename)
             if elem in sum_from_dict:
                 sum_from_dict[elem] += occu
             else:
                 sum_from_dict[elem] = occu
         except KeyError as e:
-            #print(x, filename, e)
+            # print(x, filename, e)
             pass
     cif.cif_data['calculated_formula_sum'] = sum_from_dict
     structures.fill_residuals_table(structure_id, cif)
@@ -367,11 +363,11 @@ def fill_db_tables(cif, filename, path, structure_id, structures):
 def fill_db_with_res_data(res, filename, path, structure_id, structures, options):
     if not res.cell:
         return False
-    if not all([res.cell.a, res.cell.b, res.cell.al, res.cell.be, res.cell.ga]):
+    if not all([res.cell.a, res.cell.b, res.cell.c, res.cell.al, res.cell.be, res.cell.ga]):
         return False
     if not res.cell.volume:
         return False
-    measurement_id = structures.fill_measuremnts_table(filename, structure_id)
+    measurement_id = 1  # structures.fill_measuremnts_table(filename, structure_id)
     structures.fill_structures_table(path, filename, structure_id, measurement_id, res.titl)
     structures.fill_cell_table(structure_id, res.cell.a, res.cell.b, res.cell.c, res.cell.al,
                                res.cell.be, res.cell.ga, res.cell.volume)
@@ -387,7 +383,8 @@ def fill_db_with_res_data(res, filename, path, structure_id, structures, options
                                     at.y,
                                     at.z,
                                     at.sof,
-                                    at.part.n)
+                                    at.part.n,
+                                    at.xc, at.yc, at.zc)
     cif = Cif(options=options)
     cif.cif_data["_cell_formula_units_Z"] = res.Z
     cif.cif_data["_space_group_symop_operation_xyz"] = "\n".join([repr(x) for x in res.symmcards])
@@ -438,10 +435,10 @@ if __name__ == '__main__':
     for i in z:
         print(i)
 
-    #filewalker_walk('./')
-    #z = zipopener('../test-data/Archiv.zip')
-    #print(z)
+    # filewalker_walk('./')
+    # z = zipopener('../test-data/Archiv.zip')
+    # print(z)
 
-    #fp = create_file_list('../test-data/', 'zip')
-    #for i in fp:
+    # fp = create_file_list('../test-data/', 'zip')
+    # for i in fp:
     #    print(i)

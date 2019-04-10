@@ -44,7 +44,7 @@ from cgi_ui.bottle import Bottle, static_file, template, redirect, request, resp
 from displaymol.mol_file_writer import MolFile
 from displaymol.sdm import SDM
 from lattice import lattice
-from pymatgen.core import mat_lattice
+from pymatgen.core import lattice
 from searcher.database_handler import StructureTable
 from searcher.misc import is_valid_cell, get_list_of_elements, flatten, is_a_nonzero_file, format_sum_formula, \
     combine_results
@@ -555,14 +555,14 @@ def find_cell(structures, cell, sublattice=False, more_results=False):
     idlist2 = []
     # Real lattice comparing in G6:
     if idlist:
-        lattice1 = mat_lattice.Lattice.from_parameters_niggli_reduced(*cell)
+        lattice1 = lattice.Lattice.from_parameters_niggli_reduced(*cell)
         cells = []
         # SQLite can only handle 999 variables at once:
         for cids in chunks(idlist, 500):
             cells.extend(structures.get_cells_as_list(cids))
         for num, cell_id in enumerate(idlist):
             try:
-                lattice2 = mat_lattice.Lattice.from_parameters(*cells[num][:6])
+                lattice2 = lattice.Lattice.from_parameters(*cells[num][:6])
             except ValueError:
                 continue
             mapping = lattice1.find_mapping(lattice2, ltol, atol, skip_rotation_matrix=True)

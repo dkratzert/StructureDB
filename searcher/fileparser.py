@@ -104,7 +104,7 @@ class Cif(object):
         :return: cif file content
         :rtype: dict
         >>> cif = Cif()
-        >>> ok = cif.parsefile(Cif.readfile(r'/Users/daniel/GitHub/StructureFinder/test-data/COD/4060314.cif'))
+        >>> ok = cif.parsefile(Cif.readfile(r'./test-data/COD/4060314.cif'))
         >>> cif.loops[0]
         {'_publ_author_name': 'Eva Hevia'}
         """
@@ -413,7 +413,7 @@ class Cif(object):
         """
         Yields symmetry operations.
         >>> cif = Cif()
-        >>> ok = cif.parsefile(Cif.readfile(r'/Users/daniel/GitHub/StructureFinder/test-data/COD/4060314.cif'))
+        >>> ok = cif.parsefile(Cif.readfile(r'./test-data/COD/4060314.cif'))
         >>> cif.symm
         ['x, y, z', '-x+1/2, y+1/2, -z+1/2', '-x, -y, -z', 'x-1/2, -y-1/2, z-1/2']
         """
