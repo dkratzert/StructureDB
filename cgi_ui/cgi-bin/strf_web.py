@@ -322,7 +322,7 @@ def is_ajax():
         return False
 
 
-def get_structures_json(structures, ids, show_all = False):
+def get_structures_json(structures, ids = None, show_all = False):
     """
     Returns the next package of table rows for continuos scrolling.
     """

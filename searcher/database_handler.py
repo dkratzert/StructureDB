@@ -19,7 +19,7 @@ import searcher
 from searcher import misc
 from searcher.atoms import sorted_atoms
 
-DEBUG = False
+DEBUG = True
 
 __metaclass__ = type  # use new-style classes
 
