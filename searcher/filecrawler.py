@@ -127,8 +127,7 @@ def filewalker_walk(startdir, patterns):
     return filelist
 
 
-def put_files_in_db(self=None, searchpath = './', excludes = None, lastid = 1,
-                    structures=None, fillcif=True, fillres=True):
+def put_files_in_db(self=None, searchpath = './', excludes = None, lastid = 1, structures=None, fillcif=True, fillres=True):
     """
     Imports files from a certain directory
     :param self: self
@@ -169,7 +168,7 @@ def put_files_in_db(self=None, searchpath = './', excludes = None, lastid = 1,
             self.progressbar(prognum, 0, 20)
         # This is really ugly copy&pase code. TODO: refractor this:
         if name.endswith('.cif') and fillcif:
-            with open(fullpath, mode='r', encoding='ascii', errors="ignore") as f:
+            with open(fullpath, mode='r') as f:
                 try:
                     cifok = cif.parsefile(f.readlines())
                     if not cifok:

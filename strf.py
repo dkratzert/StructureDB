@@ -16,23 +16,20 @@ from __future__ import print_function
 
 DEBUG = False
 
-import platform
 import webbrowser
 from os.path import isfile
 from sqlite3 import DatabaseError, ProgrammingError, OperationalError
 
-from PyQt4 import QtCore, uic, QtGui
-from PyQt4.QtCore import QtWarningMsg
+from PyQt4 import QtCore, QtGui
 from PyQt4.QtGui import QMainWindow, QPushButton, QProgressBar, QApplication, QFileDialog, QDialog, QTreeWidgetItem, \
-    QErrorMessage, QMessageBox
+    QMessageBox
 from PyQt4.QtWebKit import QWebView
 
 from displaymol.sdm import SDM
 from p4pfile.p4p_reader import P4PFile, read_file_to_list
-from shelxfile.misc import chunks
 from shelxfile.shelx import ShelXFile
 
-import math
+from math import sin, radians
 import os
 import shutil
 import sys
@@ -61,12 +58,6 @@ try:
 except ModuleNotFoundError:
     print('Non xml parser found.')
 
-try:
-    from PyQt5.QtWebEngineWidgets import QWebEngineView
-except Exception as e:
-    print(e, '# Unable to import QWebEngineView')
-    if DEBUG:
-        raise
 from gui.strf_main import Ui_stdbMainwindow
 from gui.strf_dbpasswd import Ui_PasswdDialog
 
@@ -486,8 +477,8 @@ class StartStructureDB(QMainWindow):
         if not startdir:
             self.progress.hide()
             self.abort_import_button.hide()
-        filecrawler.put_files_in_db(self, searchpath=startdir, fillres=self.ui.add_res.isChecked(),
-                                    fillcif=self.ui.add_cif.isChecked())
+        filecrawler.put_files_in_db(self, searchpath=startdir, excludes=None, structures=self.structures,
+                                    fillres=self.ui.add_res.isChecked(), fillcif=self.ui.add_cif.isChecked())
         self.progress.hide()
         try:
             self.structures.database.init_textsearch()
@@ -629,14 +620,14 @@ class StartStructureDB(QMainWindow):
         Event filter for key presses.
         Essentially searches for enter key presses in search fields and runs advanced search.
         """
-        if q_key_event.key() == Qt.Key_Return or q_key_event.key() == Qt.Key_Enter:
+        if q_key_event.key() == QtCore.Qt.Key_Return or q_key_event.key() == QtCore.Qt.Key_Enter:
             fields = [self.ui.ad_elementsExclLineEdit, self.ui.ad_elementsIncLineEdit, self.ui.ad_textsearch,
                       self.ui.ad_textsearch_excl, self.ui.ad_unitCellLineEdit]
             for x in fields:
                 if x.hasFocus():
                     self.advanced_search()
         else:
-            super().keyPressEvent(q_key_event)
+            super(StartStructureDB, self).keyPressEvent(q_key_event)
 
     def redraw_molecule(self):
         cell = self.structures.get_cell_by_id(self.structureId)
@@ -837,7 +828,7 @@ class StartStructureDB(QMainWindow):
         self.view.reload()
 
     @QtCore.pyqtSlot('QString')
-    def find_dates(self, date1: str, date2: str) -> list:
+    def find_dates(self, date1, date2):
         """
         Returns a list if id between date1 and date2
         """
@@ -925,7 +916,7 @@ class StartStructureDB(QMainWindow):
         if cells:
             try:
                 lattice1 = lattice.Lattice.from_parameters_niggli_reduced(*cell)
-            except ValueError:
+            except (ValueError, TypeError):
                 lattice1 = lattice.Lattice.from_parameters(*cell)
             self.statusBar().clearMessage()
             for num, curr_cell in enumerate(cells):
@@ -981,7 +972,7 @@ class StartStructureDB(QMainWindow):
         # self.ui.cifList_treeWidget.resizeColumnToContents(0)
         return True
 
-    def search_elements(self, elements, excluding, onlythese = False):
+    def search_elements(self, elements, excluding, onlythese=False):
         """
         list(set(l).intersection(l2))
         """
@@ -1003,27 +994,27 @@ class StartStructureDB(QMainWindow):
             pass
         return list(res)
 
-    def add_table_row(self, filename, path, data, structure_id) -> None:
+    def add_table_row(self, filename, path, data, structure_id):
         """
         Adds a line to the search results table.
         """
         if isinstance(filename, (bytes, buffer)):
-            filename = str(filename)#.decode("utf-8", "surrogateescape")
+            filename = str(filename)  # .decode("utf-8", "surrogateescape")
         if isinstance(path, (bytes, buffer)):
-            path = str(path)#.decode("utf-8", "surrogateescape")
+            path = str(path)  # .decode("utf-8", "surrogateescape")
         if isinstance(data, (bytes, buffer)):
-            data = str(data)#.decode("utf-8", "surrogateescape")
+            data = str(data)  # .decode("utf-8", "surrogateescape")
         tree_item = QTreeWidgetItem()
-        tree_item.setText(0, name)  # name
+        tree_item.setText(0, filename)  # name
         tree_item.setText(1, data)  # data
         tree_item.setText(2, path)  # path
         tree_item.setData(3, 0, structure_id)  # id
         self.ui.cifList_treeWidget.addTopLevelItem(tree_item)
 
     def get_import_filename_from_dialog(self):
-        return QFileDialog.getOpenFileName(self, caption='Open File', directory='./', filter="*.sqlite")[0]
+        return QFileDialog.getOpenFileName(self, caption='Open File', directory='./', filter="*.sqlite")
 
-    def import_database_file(self, fname=None) -> bool:
+    def import_database_file(self, fname):
         """
         Import a new database.
         """
@@ -1065,7 +1056,7 @@ class StartStructureDB(QMainWindow):
         """
         Reads a p4p file to get the included unit cell for a cell search.
         """
-        fname, _ = QFileDialog.getOpenFileName(self, caption='Open p4p File', directory='./',
+        fname = QFileDialog.getOpenFileName(self, caption='Open p4p File', directory='./',
                                                filter="*.p4p *.cif *.res *.ins")
         fname = str(fname)
         _, ending = os.path.splitext(fname)
@@ -1137,7 +1128,7 @@ class StartStructureDB(QMainWindow):
             time.sleep(0.05)
             self.statusBar().showMessage("{}{}".format(' ' * s, message))
 
-    def import_apex_db(self, user = '', password = '', host = ''):
+    def import_apex_db(self, user='', password='', host=''):
         """
         Imports data from apex into own db
         """
