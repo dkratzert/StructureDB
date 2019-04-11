@@ -33,9 +33,9 @@ except(KeyError, ValueError):
     print('Unable to set PATH properly. strf_web.py might not work.')
 
 pyver = sys.version_info
-if pyver[0] == 3 and pyver[1] < 4:
+if pyver[0] == 2 and pyver[1] < 7:
     # Python 2 creates a syntax error anyway.
-    print("You need Python 3.4 and up in oder to run this proram!")
+    print("You need Python 2.7 and up in oder to run this program!")
     sys.exit()
 
 from searcher.constants import centering_letter_2_num, centering_num_2_letter
@@ -43,10 +43,9 @@ from ccdc.query import get_cccsd_path, search_csd, parse_results
 from cgi_ui.bottle import Bottle, static_file, template, redirect, request, response
 from displaymol.mol_file_writer import MolFile
 from displaymol.sdm import SDM
-from lattice import lattice
 from pymatgen.core import lattice
 from searcher.database_handler import StructureTable
-from searcher.misc import is_valid_cell, get_list_of_elements, flatten, is_a_nonzero_file, format_sum_formula, \
+from searcher.misc import is_valid_cell, get_list_of_elements, vol_unitcell, is_a_nonzero_file, format_sum_formula, \
     combine_results
 
 """
@@ -383,7 +382,7 @@ def get_residuals_table1(structures, cif_dic, structure_id):
         # Display this as last resort:
         sumform = cif_dic['_chemical_formula_sum']
     table1 = """
-    <table class="table table-bordered" id='resitable1'>
+    <table class="table table-bordered table-condensed" id='resitable1'>
         <tbody>
         <tr><td style='width: 40%'><b>Space Group</b></td>                 <td>{0}</td></tr>
         <tr><td><b>Z</b></td>                           <td>{1}</td></tr>
@@ -441,7 +440,7 @@ def get_residuals_table2(cif_dic):
     except TypeError:
         data_to_param = 0
     table2 = """
-    <table class="table table-bordered" id='resitable2'>
+    <table class="table table-bordered table-condensed" id='resitable2'>
         <tbody>
         <tr><td style='width: 40%'><b>Measured Refl.</b></td>       <td>{0}</td></tr>
         <tr><td><b>Independent Refl.</b></td>                       <td>{9}</td></tr>
@@ -479,7 +478,7 @@ def get_all_cif_val_table(structures, structure_id):
     # style="white-space: pre": preserves white space
     table_string = """<h4>All CIF values</h4>
                         <div id="myresidualtable">
-                        <table class="table table-striped table-bordered" style="white-space: pre">
+                        <table class="table table-striped table-bordered table-condensed" style="white-space: pre">
                             <thead>
                                 <tr>
                                     <th> Item </th>
@@ -533,41 +532,54 @@ def find_cell(structures, cell, sublattice=False, more_results=False):
     """
     Finds unit cells in db. Rsturns hits a a list of ids.
     """
-    if more_results:
-        # more results:
-        vol_threshold = 0.09
-        ltol = 0.2
-        atol = 2
+    dbversion = structures.get_database_version()
+    if dbversion == 1:
+        # Threshold for APEX db unit cells
+        if more_results:
+            # more results:
+            vol_threshold = 0.09
+            ltol = 0.2
+            atol = 2.0
+        else:
+            # regular:
+            vol_threshold = 0.03
+            ltol = 0.06
+            atol = 1.0
     else:
-        # regular:
-        vol_threshold = 0.03
-        ltol = 0.06
-        atol = 1
-    volume = lattice.vol_unitcell(*cell)
-    idlist = structures.find_by_volume(volume, vol_threshold)
+        # regular unit cells, no APEX special:
+        if more_results:
+            # more results:
+            vol_threshold = 0.02
+            ltol = 0.03
+            atol = 1.8
+        else:
+            # regular:
+            vol_threshold = 0.02
+            ltol = 0.03
+            atol = 1.0
+    volume = vol_unitcell(*cell)
+    cells = structures.find_by_volume(volume, vol_threshold)
     if sublattice:
         # sub- and superlattices:
         for v in [volume * x for x in [2.0, 3.0, 4.0, 6.0, 8.0, 10.0]]:
             # First a list of structures where the volume is similar:
-            idlist.extend(structures.find_by_volume(v, vol_threshold))
-        idlist = list(set(idlist))
-        idlist.sort()
+            cells.extend(structures.find_by_volume(v, vol_threshold))
+        cells = list(set(cells))
     idlist2 = []
     # Real lattice comparing in G6:
-    if idlist:
-        lattice1 = lattice.Lattice.from_parameters_niggli_reduced(*cell)
-        cells = []
-        # SQLite can only handle 999 variables at once:
-        for cids in chunks(idlist, 500):
-            cells.extend(structures.get_cells_as_list(cids))
-        for num, cell_id in enumerate(idlist):
+    if cells:
+        try:
+            lattice1 = lattice.Lattice.from_parameters_niggli_reduced(*cell)
+        except ValueError:
+            lattice1 = lattice.Lattice.from_parameters(*cell)
+        for num, curr_cell in enumerate(cells):
             try:
-                lattice2 = lattice.Lattice.from_parameters(*cells[num][:6])
+                lattice2 = lattice.Lattice.from_parameters(*curr_cell[1:7])
             except ValueError:
                 continue
             mapping = lattice1.find_mapping(lattice2, ltol, atol, skip_rotation_matrix=True)
             if mapping:
-                idlist2.append(cell_id)
+                idlist2.append(curr_cell[0])
     if idlist2:
         return idlist2
     else:
@@ -643,27 +655,43 @@ def advanced_search(cellstr, elincl, elexcl, txt, txt_ex, sublattice, more_resul
     txt_results = []
     txt_ex_results = []
     date_results = []
+    states = {'date'  : False,
+              'cell'  : False,
+              'elincl': False,
+              'elexcl': False,
+              'txt'   : False,
+              'txt_ex': False,
+              'spgr'  : False}
     cell = is_valid_cell(cellstr)
     try:
         spgr = int(it_num.split()[0])
     except:
         spgr = 0
     if cell:
+        states['cell'] = True
         cell_results = find_cell(structures, cell, sublattice=sublattice, more_results=more_results)
     if spgr:
+        states['spgr'] = True
         spgr_results = structures.find_by_it_number(spgr)
     if elincl or elexcl:
+        if elincl:
+            states['elincl'] = True
+        if elexcl:
+            states['elexcl'] = True
         elincl_results = search_elements(structures, elincl, elexcl, onlythese)
     if txt:
+        states['txt'] = True
         txt_results = [i[0] for i in structures.find_by_strings(txt)]
     if txt_ex:
+        states['txt_ex'] = True
         txt_ex_results = [i[0] for i in structures.find_by_strings(txt_ex)]
     if date1 != date2:
+        states['date'] = True
         date_results = find_dates(structures, date1, date2)
     ####################
     results = combine_results(cell_results, date_results, elincl_results, results, spgr_results,
-                              txt_ex_results, txt_results)
-    return flatten(list(results))
+                              txt_ex_results, txt_results, states)
+    return list(results)
 
 
 if __name__ == "__main__":
