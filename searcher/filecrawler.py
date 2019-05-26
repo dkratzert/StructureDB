@@ -218,7 +218,7 @@ def put_files_in_db(self=None, searchpath = './', excludes = None, lastid = 1, s
                     continue
                 if cif:
                     tst = fill_db_tables(cif, filename=z.cifname, path=fullpath,
-                                         structure_id=str(lastid), structures=structures)
+                                         structure_id=lastid, structures=structures)
                     if not tst:
                         if DEBUG:
                             print('cif file not added:', fullpath)

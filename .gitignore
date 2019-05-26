@@ -2,6 +2,7 @@
 Thumbs.db
 ehthumbs.db
 venv2/
+venv27
 build/
 dist/
 

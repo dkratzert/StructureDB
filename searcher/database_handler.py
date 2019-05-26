@@ -860,6 +860,9 @@ class StructureTable():
             return []
         req = '''SELECT StructureId from Residuals WHERE _space_group_IT_number IS ?'''
         result = self.database.db_request(req, (value,))
+        return self.result_to_list(result)
+
+    def result_to_list(self, result):
         if result and len(result) > 0:
             return [x[0] for x in result]
         else:
@@ -900,10 +903,7 @@ class StructureTable():
             exclude = ' IS NULL AND '.join(['Elem_' + x.capitalize() for x in elex]) + ' IS NULL '
             req = '''SELECT StructureId from sum_formula WHERE ({} AND {}) '''.format(el, exclude)
         result = self.database.db_request(req)
-        if result:
-            return [x[0] for x in result]
-        else:
-            return []
+        return self.result_to_list(result)
 
     def find_by_date(self, start='0000-01-01', end='NOW'):
         """
@@ -916,7 +916,24 @@ class StructureTable():
         req = """
               SELECT StructureId FROM Residuals WHERE modification_time between DATE(?) AND DATE(?);
               """
-        return searcher.misc.flatten([list(x) for x in self.database.db_request(req, (start, end))])
+        result = self.database.db_request(req, (start, end))
+        return self.result_to_list(result)
+
+
+    def find_by_rvalue(self, rvalue: float):
+        """
+        Finds structures with R1 value better than rvalue. I search both R1 values, because often one or even both
+        are missing.
+
+        >>> db = StructureTable('./test-data/test.sql')
+        >>> db.find_by_rvalue(0.035)
+        [18, 64, 75, 128, 131, 135, 151, 164, 236, 237, 243]
+        """
+        req = """
+                SELECT StructureId FROM Residuals WHERE _refine_ls_R_factor_gt <= ? OR _refine_ls_R_factor_all <= ?
+                """
+        return self.result_to_list(self.database.db_request(req, (rvalue, rvalue)))
+
 
     def find_biggest_cell(self):
         """

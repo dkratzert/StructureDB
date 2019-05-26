@@ -14,13 +14,13 @@ Created on 09.02.2015
 """
 from __future__ import print_function
 
-DEBUG = False
+DEBUG = True
 
 import webbrowser
 from os.path import isfile
 from sqlite3 import DatabaseError, ProgrammingError, OperationalError
 
-from PyQt4 import QtCore, QtGui
+from PyQt4.QtCore import pyqtSlot
 from PyQt4.QtGui import QMainWindow, QPushButton, QProgressBar, QApplication, QFileDialog, QDialog, QTreeWidgetItem, \
     QMessageBox
 from PyQt4.QtWebKit import QWebView
@@ -118,9 +118,8 @@ class StartStructureDB(QMainWindow):
         self.full_list = True  # indicator if the full structures list is shown
         self.decide_import = True
         self.connect_signals_and_slots()
-        # Set both to today() to distinquish between a modified and unmodified date field.
-        self.ui.dateEdit1.setDate(QtCore.QDate(date.today()))
-        self.ui.dateEdit2.setDate(QtCore.QDate(date.today()))
+        self.ui.dateEdit1.setDate(QDate(date.today()))
+        self.ui.dateEdit2.setDate(QDate(date.today()))
         try:
             self.write_empty_molfile(mol_data=' ')
         except Exception as e:
@@ -133,7 +132,7 @@ class StartStructureDB(QMainWindow):
             print(e, '###')
             # raise
         self.ui.MaintabWidget.setCurrentIndex(0)
-        self.setWindowIcon(QtGui.QIcon(os.path.join(application_path, './icons/strf.png')))
+        self.setWindowIcon(QIcon(os.path.join(application_path, './icons/strf.png')))
         self.uipass = Ui_PasswdDialog()
         # self.ui.cifList_treeWidget.sortByColumn(0, 0)
         # Actions for certain gui elements:
@@ -170,8 +169,8 @@ class StartStructureDB(QMainWindow):
         self.abort_import_button.clicked.connect(self.abort_import)
         self.ui.moreResultsCheckBox.stateChanged.connect(self.cell_state_changed)
         self.ui.sublattCheckbox.stateChanged.connect(self.cell_state_changed)
-        self.ui.ad_SearchPushButton.clicked.connect(self.advanced_search)
-        self.ui.ad_ClearSearchButton.clicked.connect(self.show_full_list)
+        self.ui.adv_SearchPushButton.clicked.connect(self.advanced_search)
+        self.ui.adv_ClearSearchButton.clicked.connect(self.show_full_list)
         if is_windows:
             self.ui.CSDpushButton.clicked.connect(self.search_csd_and_display_results)
         # Actions:
@@ -187,8 +186,8 @@ class StartStructureDB(QMainWindow):
         self.ui.p4pCellButton.clicked.connect(self.get_name_from_p4p)
         self.ui.cifList_treeWidget.itemDoubleClicked.connect(self.on_click_item)
         self.ui.CSDtreeWidget.itemDoubleClicked.connect(self.show_csdentry)
-        self.ui.ad_elementsIncLineEdit.textChanged.connect(self.elements_fields_check)
-        self.ui.ad_elementsExclLineEdit.textChanged.connect(self.elements_fields_check)
+        self.ui.adv_elementsIncLineEdit.textChanged.connect(self.elements_fields_check)
+        self.ui.adv_elementsExclLineEdit.textChanged.connect(self.elements_fields_check)
         self.ui.add_res.clicked.connect(self.res_checkbox_clicked)
         self.ui.add_cif.clicked.connect(self.cif_checkbox_clicked)
         self.ui.cifList_treeWidget.selectionModel().currentChanged.connect(self.get_properties)
@@ -249,12 +248,12 @@ class StartStructureDB(QMainWindow):
                 ok = False
         return ok
 
-    @QtCore.pyqtSlot('QString', name="elements_fields_check")
+    @pyqtSlot('QString', name="elements_fields_check")
     def elements_fields_check(self):
         """
         """
-        elem1 = str(self.ui.ad_elementsIncLineEdit.text()).split()
-        elem2 = str(self.ui.ad_elementsExclLineEdit.text()).split()
+        elem1 = str(self.ui.adv_elementsIncLineEdit.text()).split()
+        elem2 = str(self.ui.adv_elementsExclLineEdit.text()).split()
         if (not self.elements_doubled_check(elem1, elem2)) or (not self.elements_doubled_check(elem2, elem1)):
             self.elements_invalid()
         else:
@@ -304,17 +303,17 @@ class StartStructureDB(QMainWindow):
 
     def elements_invalid(self):
         # Elements not valid:
-        self.ui.ad_elementsIncLineEdit.setStyleSheet("color: rgb(255, 0, 0); font: bold 12px;")
-        self.ui.ad_SearchPushButton.setDisabled(True)
-        self.ui.ad_elementsExclLineEdit.setStyleSheet("color: rgb(255, 0, 0); font: bold 12px;")
-        self.ui.ad_SearchPushButton.setDisabled(True)
+        self.ui.adv_elementsIncLineEdit.setStyleSheet("color: rgb(255, 0, 0); font: bold 12px;")
+        self.ui.adv_SearchPushButton.setDisabled(True)
+        self.ui.adv_elementsExclLineEdit.setStyleSheet("color: rgb(255, 0, 0); font: bold 12px;")
+        self.ui.adv_SearchPushButton.setDisabled(True)
 
     def elements_regular(self):
         # Elements valid:
-        self.ui.ad_elementsIncLineEdit.setStyleSheet("color: rgb(0, 0, 0);")
-        self.ui.ad_SearchPushButton.setEnabled(True)
-        self.ui.ad_elementsExclLineEdit.setStyleSheet("color: rgb(0, 0, 0);")
-        self.ui.ad_SearchPushButton.setEnabled(True)
+        self.ui.adv_elementsIncLineEdit.setStyleSheet("color: rgb(0, 0, 0);")
+        self.ui.adv_SearchPushButton.setEnabled(True)
+        self.ui.adv_elementsExclLineEdit.setStyleSheet("color: rgb(0, 0, 0);")
+        self.ui.adv_SearchPushButton.setEnabled(True)
 
     def copyUnitCell(self):
         if self.structureId:
@@ -347,18 +346,18 @@ class StartStructureDB(QMainWindow):
                   'spgr'  : False}
         if not self.structures:
             return
-        cell = is_valid_cell(str(self.ui.ad_unitCellLineEdit.text()))
+        cell = is_valid_cell(str(self.ui.adv_unitCellLineEdit.text()))
         date1 = str(self.ui.dateEdit1.text())
         date2 = str(self.ui.dateEdit2.text())
-        elincl = str(self.ui.ad_elementsIncLineEdit.text()).strip(' ')
-        elexcl = str(self.ui.ad_elementsExclLineEdit.text()).strip(' ')
-        txt = str(self.ui.ad_textsearch.text()).strip(' ')
-        txt_ex = str(self.ui.ad_textsearch_excl.text()).strip(' ')
+        elincl = str(self.ui.adv_elementsIncLineEdit.text()).strip(' ')
+        elexcl = str(self.ui.adv_elementsExclLineEdit.text()).strip(' ')
+        txt = str(self.ui.adv_textsearch.text()).strip(' ')
+        txt_ex = str(self.ui.adv_textsearch_excl.text()).strip(' ')
         if len(txt) >= 2 and "*" not in txt:
             txt = '*' + txt + '*'
         if len(txt_ex) >= 2 and "*" not in txt_ex:
             txt_ex = '*' + txt_ex + '*'
-        spgr = str(self.ui.SpGrcomboBox.currentText())
+        spgr = str(self.ui.SpGrpComboBox.currentText())
         onlythese = self.ui.onlyTheseElementsCheckBox.isChecked()
         #
         results = []
@@ -370,7 +369,7 @@ class StartStructureDB(QMainWindow):
         date_results = []
         try:
             spgr = int(spgr.split()[0])
-        except:
+        except Exception:
             spgr = 0
         if cell:
             states['cell'] = True
@@ -396,7 +395,7 @@ class StartStructureDB(QMainWindow):
         ####################
         results = combine_results(cell_results, date_results, elincl_results, results, spgr_results,
                                   txt_ex_results, txt_results, states)
-        self.display_structures_by_idlist(flatten(list(results)))
+        self.display_structures_by_idlist(list(results))
 
     def display_structures_by_idlist(self, idlist):
         # type: (list) -> None
@@ -552,7 +551,7 @@ class StartStructureDB(QMainWindow):
                     return False
         return True
 
-    @QtCore.pyqtSlot(name="abort_import")
+    @pyqtSlot(name="abort_import")
     def abort_import(self):
         """
         This slot means, import was aborted.
@@ -567,7 +566,7 @@ class StartStructureDB(QMainWindow):
         self.structures = database_handler.StructureTable(self.dbfilename)
         self.structures.database.initialize_db()
 
-    @QtCore.pyqtSlot('QModelIndex', name="get_properties")
+    @pyqtSlot('QModelIndex', name="get_properties")
     def get_properties(self, item):
         """
         This slot shows the properties of a cif file in the properties widget
@@ -827,8 +826,8 @@ class StartStructureDB(QMainWindow):
         p2.write_text(data='', encoding="utf-8", errors='ignore')
         self.view.reload()
 
-    @QtCore.pyqtSlot('QString')
-    def find_dates(self, date1, date2):
+    @pyqtSlot('QString')
+    def find_dates(self, date1: str, date2: str) -> list:
         """
         Returns a list if id between date1 and date2
         """
@@ -839,8 +838,8 @@ class StartStructureDB(QMainWindow):
         result = self.structures.find_by_date(date1, date2)
         return result
 
-    @QtCore.pyqtSlot('QString')
-    def search_text(self, search_string):
+    @pyqtSlot('QString')
+    def search_text(self, search_string: str) -> bool:
         """
         searches db for given text
         """
@@ -862,7 +861,7 @@ class StartStructureDB(QMainWindow):
         except AttributeError as e:
             print(e)
         try:
-            self.statusBar().showMessage("Found {} entries.".format(len(searchresult)))
+            self.statusBar().showMessage("Found {} structures.".format(len(searchresult)))
             for structure_id, filename, dataname, path in searchresult:
                 self.add_table_row(filename, path, dataname, structure_id)
             self.set_columnsize()
@@ -875,7 +874,7 @@ class StartStructureDB(QMainWindow):
         This method does not validate the cell. This has to be done before!
         """
         if self.apexdb == 1:  # needs less accurate search:
-            if self.ui.moreResultsCheckBox.isChecked() or self.ui.ad_moreResultscheckBox.isChecked():
+            if self.ui.moreResultsCheckBox.isChecked() or self.ui.adv_moreResultscheckBox.isChecked():
                 # more results:
                 vol_threshold = 0.09
                 ltol = 0.2
@@ -886,7 +885,7 @@ class StartStructureDB(QMainWindow):
                 ltol = 0.06
                 atol = 1.0
         else:  # regular database:
-            if self.ui.moreResultsCheckBox.isChecked() or self.ui.ad_moreResultscheckBox.isChecked():
+            if self.ui.moreResultsCheckBox.isChecked() or self.ui.adv_moreResultscheckBox.isChecked():
                 # more results:
                 vol_threshold = 0.04
                 ltol = 0.08
@@ -900,7 +899,7 @@ class StartStructureDB(QMainWindow):
             volume = misc.vol_unitcell(*cell)
             # the fist number in the result is the structureid:
             cells = self.structures.find_by_volume(volume, vol_threshold)
-            if self.ui.sublattCheckbox.isChecked() or self.ui.ad_superlatticeCheckBox.isChecked():
+            if self.ui.sublattCheckbox.isChecked() or self.ui.adv_superlatticeCheckBox.isChecked():
                 # sub- and superlattices:
                 for v in [volume * x for x in [2.0, 3.0, 4.0, 6.0, 8.0, 10.0]]:
                     # First a list of structures where the volume is similar:
@@ -909,7 +908,7 @@ class StartStructureDB(QMainWindow):
         except (ValueError, AttributeError):
             if not self.full_list:
                 self.ui.cifList_treeWidget.clear()
-                self.statusBar().showMessage('Found 0 cells.')
+                self.statusBar().showMessage('Found 0 structures.')
             return []
         # Real lattice comparing in G6:
         idlist = []
@@ -931,13 +930,13 @@ class StartStructureDB(QMainWindow):
         # print("After match: ", len(idlist), sorted(idlist))
         return idlist
 
-    @QtCore.pyqtSlot('QString', name='search_cell')
-    def search_cell(self, search_string):
+    @pyqtSlot('QString', name='search_cell')
+    def search_cell(self, search_string: str) -> bool:
         """
         searches db for given cell via the cell volume
         """
         cell = is_valid_cell(search_string)
-        self.ui.ad_unitCellLineEdit.setText('  '.join([str(x) for x in cell]))
+        self.ui.adv_unitCellLineEdit.setText('  '.join([str(x) for x in cell]))
         if self.ui.cellSearchCSDLineEdit.isEnabled() and cell:
             self.ui.cellSearchCSDLineEdit.setText('  '.join([str(x) for x in cell]))
         self.ui.txtSearchEdit.clear()
@@ -959,10 +958,10 @@ class StartStructureDB(QMainWindow):
         idlist = self.search_cell_idlist(cell)
         if not idlist:
             self.ui.cifList_treeWidget.clear()
-            self.statusBar().showMessage('Found 0 cells.', msecs=0)
+            self.statusBar().showMessage('Found 0 structures.', msecs=0)
             return False
         searchresult = self.structures.get_all_structure_names(idlist)
-        self.statusBar().showMessage('Found {} cells.'.format(len(idlist)))
+        self.statusBar().showMessage('Found {} structures.'.format(len(idlist)))
         self.ui.cifList_treeWidget.clear()
         self.full_list = False
         for structure_id, _, path, name, data in searchresult:
@@ -1234,17 +1233,17 @@ class StartStructureDB(QMainWindow):
         # self.ui.cifList_treeWidget.resizeColumnToContents(1)
         self.full_list = True
         self.ui.MaintabWidget.setCurrentIndex(0)
-        self.ui.SpGrcomboBox.setCurrentIndex(0)
-        self.ui.ad_elementsIncLineEdit.clear()
-        self.ui.ad_elementsExclLineEdit.clear()
-        self.ui.ad_moreResultscheckBox.setChecked(False)
-        self.ui.ad_superlatticeCheckBox.setChecked(False)
-        self.ui.ad_textsearch.clear()
-        self.ui.ad_textsearch_excl.clear()
-        self.ui.ad_unitCellLineEdit.clear()
-        # No, don't do this:
-        # self.ui.dateEdit1.setDate(QDate(date.today()))
-        # self.ui.dateEdit2.setDate(QDate(date.today()))
+        self.ui.SpGrpComboBox.setCurrentIndex(0)
+        self.ui.adv_elementsIncLineEdit.clear()
+        self.ui.adv_elementsExclLineEdit.clear()
+        self.ui.adv_moreResultscheckBox.setChecked(False)
+        self.ui.adv_superlatticeCheckBox.setChecked(False)
+        self.ui.adv_textsearch.clear()
+        self.ui.adv_textsearch_excl.clear()
+        self.ui.adv_unitCellLineEdit.clear()
+        # I need this to reset the date after clearing the search values in advanced search:
+        self.ui.dateEdit1.setDate(QDate(date.today()))
+        self.ui.dateEdit2.setDate(QDate(date.today()))
 
     def clear_fields(self):
         """
@@ -1295,7 +1294,7 @@ if __name__ == "__main__":
 
     # later http://www.pyinstaller.org/
     app = QApplication(sys.argv)
-    app.setWindowIcon(QtGui.QIcon('./icons/strf.png'))
+    app.setWindowIcon(QIcon('./icons/strf.png'))
     # Has to be without version number, because QWebengine stores data in ApplicationName directory:
     app.setApplicationName('StructureFinder')
     # app.setApplicationDisplayName("StructureFinder")

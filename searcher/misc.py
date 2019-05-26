@@ -324,12 +324,12 @@ def formula_str_to_dict(sumform):
             isnumber(sumform[2:])
             atlist[sumform[0:2].capitalize()] = "".join(nums)
             sumform = sumform[2 + len(nums):]
-            nums.clear()
+            nums = []
         elif sumform[0] in elements:
             isnumber(sumform[1:])
             atlist[sumform[0]] = "".join(nums)
             sumform = sumform[1 + len(nums):]
-            nums.clear()
+            nums = []
         else:
             raise KeyError
     return atlist
@@ -464,16 +464,16 @@ def combine_results(cell_results, date_results, elincl_results, results, spgr_re
         if results:
             results = set(results).intersection(spgr_results)
         else:
-            if states['txt'] or states['elincl'] or states['date'] or states['cell']:
+            if states['cell']:
                 results = set([])
             else:
                 results = spgr_results
-    if states['elincl']:
+    if states['elincl'] or states['elexcl']:
         elincl_results = set(elincl_results)
         if results:
             results = set(results).intersection(elincl_results)
         else:
-            if states['txt'] or states['date'] or states['spgr'] or states['cell']:
+            if states['spgr'] or states['cell']:
                 results = set([])
             else:
                 results = elincl_results
@@ -482,7 +482,7 @@ def combine_results(cell_results, date_results, elincl_results, results, spgr_re
         if results:
             results = set(results).intersection(txt_results)
         else:
-            if states['date'] or states['elincl'] or states['spgr'] or states['cell']:
+            if states['elincl'] or states['spgr'] or states['cell']:
                 results = set([])
             else:
                 results = txt_results
