@@ -920,7 +920,7 @@ class StructureTable():
         return self.result_to_list(result)
 
 
-    def find_by_rvalue(self, rvalue: float):
+    def find_by_rvalue(self, rvalue):
         """
         Finds structures with R1 value better than rvalue. I search both R1 values, because often one or even both
         are missing.

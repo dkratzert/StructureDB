@@ -14,15 +14,17 @@ Created on 09.02.2015
 """
 from __future__ import print_function
 
+from urlparse import urlparse
+
 DEBUG = True
 
 import webbrowser
 from os.path import isfile
 from sqlite3 import DatabaseError, ProgrammingError, OperationalError
 
-from PyQt4.QtCore import pyqtSlot
+from PyQt4.QtCore import pyqtSlot, QEvent, Qt, QUrl, QDate
 from PyQt4.QtGui import QMainWindow, QPushButton, QProgressBar, QApplication, QFileDialog, QDialog, QTreeWidgetItem, \
-    QMessageBox
+    QMessageBox, QIcon
 from PyQt4.QtWebKit import QWebView
 
 from displaymol.sdm import SDM
@@ -56,7 +58,7 @@ try:
     from xml.etree.ElementTree import ParseError
     from ccdc.query import get_cccsd_path, search_csd, parse_results
 except ModuleNotFoundError:
-    print('Non xml parser found.')
+    print('No xml parser found.')
 
 from gui.strf_main import Ui_stdbMainwindow
 from gui.strf_dbpasswd import Ui_PasswdDialog
@@ -331,6 +333,7 @@ class StartStructureDB(QMainWindow):
             self.ui.statusbar.showMessage('Copied unit cell {} to clip board.'.format(cell))
         return True
 
+    @pyqtSlot(name="advanced_search")
     def advanced_search(self):
         """
         Combines all the search fields. Collects all includes, all excludes and calculates
@@ -439,7 +442,7 @@ class StartStructureDB(QMainWindow):
         """
         self.view = QWebView()
         path = os.path.abspath(os.path.join(application_path, "./displaymol/jsmol.htm"))
-        self.view.load(QtCore.QUrl.fromLocalFile(path))
+        self.view.load(QUrl.fromLocalFile(path))
         # self.view.setMaximumWidth(260)
         # self.view.setMaximumHeight(290)
         self.ui.ogllayout.addWidget(self.view)
@@ -448,7 +451,7 @@ class StartStructureDB(QMainWindow):
     def onWebviewLoadFinished(self):
         self.view.show()
 
-    @QtCore.pyqtSlot(name="cell_state_changed")
+    @pyqtSlot(name="cell_state_changed")
     def cell_state_changed(self):
         """
         Searches a cell but with diffeent loose or strict option.
@@ -508,7 +511,7 @@ class StartStructureDB(QMainWindow):
         if curr == max:
             self.progress.hide()
 
-    @QtCore.pyqtSlot(name="close_db")
+    @pyqtSlot(name="close_db")
     def close_db(self, copy_on_close=None):
         """
         Closed the current database and erases the list.
@@ -592,7 +595,7 @@ class StartStructureDB(QMainWindow):
             self.structures.set_database_version(self.apexdb)
         status = False
         if not save_name:
-            save_name, _ = self.get_save_name_from_dialog()
+            save_name = self.get_save_name_from_dialog()
         if save_name:
             if same_file(self.dbfilename, save_name):
                 qe = QMessageBox()
@@ -606,10 +609,10 @@ class StartStructureDB(QMainWindow):
 
     def eventFilter(self, object, event):
         """Event filter for mouse clicks."""
-        if event.type() == QtCore.QEvent.MouseButtonDblClick:
+        if event.type() == QEvent.MouseButtonDblClick:
             self.copyUnitCell()
-        elif event.type() == QtCore.QEvent.MouseButtonPress:
-            if event.buttons() == QtCore.Qt.RightButton:
+        elif event.type() == QEvent.MouseButtonPress:
+            if event.buttons() == Qt.RightButton:
                 # print("rightbutton")
                 return True
         return False
@@ -619,7 +622,7 @@ class StartStructureDB(QMainWindow):
         Event filter for key presses.
         Essentially searches for enter key presses in search fields and runs advanced search.
         """
-        if q_key_event.key() == QtCore.Qt.Key_Return or q_key_event.key() == QtCore.Qt.Key_Enter:
+        if q_key_event.key() == Qt.Key_Return or q_key_event.key() == Qt.Key_Enter:
             fields = [self.ui.ad_elementsExclLineEdit, self.ui.ad_elementsIncLineEdit, self.ui.ad_textsearch,
                       self.ui.ad_textsearch_excl, self.ui.ad_unitCellLineEdit]
             for x in fields:
@@ -827,7 +830,7 @@ class StartStructureDB(QMainWindow):
         self.view.reload()
 
     @pyqtSlot('QString')
-    def find_dates(self, date1: str, date2: str) -> list:
+    def find_dates(self, date1, date2):
         """
         Returns a list if id between date1 and date2
         """
@@ -839,7 +842,7 @@ class StartStructureDB(QMainWindow):
         return result
 
     @pyqtSlot('QString')
-    def search_text(self, search_string: str) -> bool:
+    def search_text(self, search_string):
         """
         searches db for given text
         """
@@ -931,7 +934,7 @@ class StartStructureDB(QMainWindow):
         return idlist
 
     @pyqtSlot('QString', name='search_cell')
-    def search_cell(self, search_string: str) -> bool:
+    def search_cell(self, search_string):
         """
         searches db for given cell via the cell volume
         """
