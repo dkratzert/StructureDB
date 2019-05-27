@@ -623,8 +623,8 @@ class StartStructureDB(QMainWindow):
         Essentially searches for enter key presses in search fields and runs advanced search.
         """
         if q_key_event.key() == Qt.Key_Return or q_key_event.key() == Qt.Key_Enter:
-            fields = [self.ui.ad_elementsExclLineEdit, self.ui.ad_elementsIncLineEdit, self.ui.ad_textsearch,
-                      self.ui.ad_textsearch_excl, self.ui.ad_unitCellLineEdit]
+            fields = [self.ui.adv_elementsExclLineEdit, self.ui.adv_elementsIncLineEdit, self.ui.adv_textsearch,
+                      self.ui.adv_textsearch_excl, self.ui.adv_unitCellLineEdit]
             for x in fields:
                 if x.hasFocus():
                     self.advanced_search()
