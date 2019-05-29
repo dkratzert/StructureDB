@@ -46,7 +46,7 @@ from pymatgen.core import lattice
 from searcher import constants, misc, filecrawler, database_handler
 from searcher.constants import centering_num_2_letter, centering_letter_2_num
 from searcher.fileparser import Cif
-from searcher.misc import is_valid_cell, elements, same_file, Path, flatten, combine_results
+from searcher.misc import is_valid_cell, elements, same_file, Path, combine_results
 
 is_windows = False
 import platform
@@ -57,7 +57,7 @@ if platform.system() == 'Windows':
 try:
     from xml.etree.ElementTree import ParseError
     from ccdc.query import get_cccsd_path, search_csd, parse_results
-except ModuleNotFoundError:
+except:
     print('No xml parser found.')
 
 from gui.strf_main import Ui_stdbMainwindow
@@ -1059,7 +1059,7 @@ class StartStructureDB(QMainWindow):
         Reads a p4p file to get the included unit cell for a cell search.
         """
         fname = QFileDialog.getOpenFileName(self, caption='Open p4p File', directory='./',
-                                               filter="*.p4p *.cif *.res *.ins")
+                                            filter="*.p4p *.cif *.res *.ins")
         fname = str(fname)
         _, ending = os.path.splitext(fname)
         if ending == '.p4p':
