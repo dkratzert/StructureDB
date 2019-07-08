@@ -258,7 +258,7 @@ class DatabaseRequest():
         """
         try:
             self.cur.execute(request, *args)
-        except OperationalError:
+        except (OperationalError, ProgrammingError):
             return False
         row = self.cur.fetchone()
         return row

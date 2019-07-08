@@ -267,7 +267,8 @@ def show_cellcheck():
     response.content_type = 'text/html; charset=UTF-8'
     data = {"my_ip" : site_ip,
             "title" : 'StructureFinder',
-            'str_id': cellstr, 'cent': cent,
+            'str_id': cellstr,
+            'cent': cent,
             'host'  : host}
     output = template('./cgi_ui/views/cellcheckcsd', data)
     # 'formula': formula_dict_to_elements(formula)}
@@ -401,8 +402,8 @@ def get_residuals_table1(structures, cif_dic, structure_id):
                cif_dic['_cell_formula_units_Z'],
                sumform,
                cif_dic['_diffrn_ambient_temperature'],
-               cif_dic['_refine_ls_wR_factor_ref'],
-               cif_dic['_refine_ls_R_factor_gt'],
+               cif_dic['_refine_ls_wR_factor_ref'] if cif_dic['_refine_ls_wR_factor_ref'] else cif_dic['_refine_ls_wR_factor_gt'],
+               cif_dic['_refine_ls_R_factor_gt'] if cif_dic['_refine_ls_R_factor_gt'] else cif_dic['_refine_ls_R_factor_all'],
                cif_dic['_refine_ls_goodness_of_fit_ref'],
                cif_dic['_refine_ls_shift_su_max'],
                peakhole,
@@ -422,6 +423,7 @@ def get_residuals_table2(cif_dic):
         return ""
     wavelen = cif_dic['_diffrn_radiation_wavelength']
     thetamax = cif_dic['_diffrn_reflns_theta_max']
+    thetafull = cif_dic['_diffrn_reflns_theta_full']
     # d = lambda/2sin(theta):
     try:
         d = wavelen / (2 * math.sin(math.radians(thetamax)))
@@ -448,21 +450,23 @@ def get_residuals_table2(cif_dic):
         <tr><td><b>Parameters</b></td>                              <td>{1}</td></tr>
         <tr><td><b>data/param</b></td>                              <td>{2:<5.1f}</td></tr>
         <tr><td><b>Restraints</b></td>                              <td>{3}</td></tr>
-        <tr><td><b>&theta;<sub>max</sub> [&deg;]</b></td>                    <td>{4}</td></tr>
-        <tr><td><b>&theta;<sub>full</sub> [&deg;]</b></td>                   <td>{5}</td></tr>
+        <tr><td><b>&theta;<sub>full</sub> [&deg;]</b> / 
+        <b>&theta;<sub>max</sub> [&deg;]</b></td>                    <td>{4} / {5}</td></tr>
         <tr><td><b>d [&angst;]</b></td>                             <td>{6:5.3f}</td></tr>
         <tr><td><b>completeness [%]</b></td>                            <td>{7:<5.1f}</td></tr>
-        <tr><td><b>CCDC Number</b></td>                             <td>{8}</td></tr>
+        <tr><td><b>Flack X parameter</b></td>                             <td>{8}</td></tr>
+        <tr><td><b>CCDC Number</b></td>                             <td>{9}</td></tr>
         </tbody>
     </table>
     """.format(cif_dic['_diffrn_reflns_number'],
                cif_dic['_refine_ls_number_parameters'],
                data_to_param,
                cif_dic['_refine_ls_number_restraints'],
-               thetamax,
-               cif_dic['_diffrn_reflns_theta_full'],
+               thetamax if thetamax else '?',
+               thetafull if thetafull else '?',
                d,
                compl,
+               cif_dic['_refine_ls_abs_structure_Flack'],
                cif_dic['_database_code_depnum_ccdc_archive'],
                cif_dic['_refine_ls_number_reflns'],
                cif_dic['_reflns_number_gt']

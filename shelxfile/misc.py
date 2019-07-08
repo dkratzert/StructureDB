@@ -63,8 +63,6 @@ class ParseSyntaxError(Exception):
             print("*** Syntax Error ***")
 
 
-
-
 def remove_file(filename, exit_dsr=False):
     """
     removes the file "filename" from disk
@@ -81,7 +79,7 @@ def remove_file(filename, exit_dsr=False):
         return True
 
 
-def find_line(inputlist, regex, start = None):
+def find_line(inputlist, regex, start=None):
     """
     returns the index number of the line where regex is found in the inputlist
     if stop is true, stop searching with first line found
@@ -310,6 +308,7 @@ class ResList():
     """
     Contains the lines of the res file as unordered linked list.
     """
+
     def __init__(self):
         """
         >>> res = ResList()
@@ -353,7 +352,7 @@ class ResList():
         self.head = temp
         self.size += 1
 
-    def search(self,item):
+    def search(self, item):
         current = self.head
         found = False
         while current is not None and not found:

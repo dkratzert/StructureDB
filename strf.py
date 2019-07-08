@@ -65,7 +65,6 @@ from gui.strf_dbpasswd import Ui_PasswdDialog
 
 """
 TODO:
-- sort results by G6 distance
 
 Search for:
 - draw structure (with JSME? Acros? Kekule?, https://github.com/ggasoftware/ketcher)
@@ -696,7 +695,9 @@ class StartStructureDB(QMainWindow):
         self.ui.cellField.installEventFilter(self)
         self.ui.cellField.setToolTip("Double click on 'Unit Cell' to copy to clipboard.")
         try:
-            self.ui.wR2LineEdit.setText("{:>5.4f}".format(cif_dic['_refine_ls_wR_factor_ref']))
+            self.ui.wR2LineEdit.setText("{:>5.4}".format(str(cif_dic['_refine_ls_wR_factor_ref'])))
+        except (ValueError, TypeError):
+            self.ui.wR2LineEdit.setText("{:>5.4}".format(str(cif_dic['_refine_ls_wR_factor_gt'])))
         except (ValueError, TypeError):
             pass
         try:  # R1:
@@ -732,6 +733,7 @@ class StartStructureDB(QMainWindow):
         self.ui.rintLineEdit.setText("{}".format(cif_dic['_diffrn_reflns_av_R_equivalents']))
         self.ui.rsigmaLineEdit.setText("{}".format(cif_dic['_diffrn_reflns_av_unetI_netI']))
         self.ui.cCDCNumberLineEdit.setText("{}".format(cif_dic['_database_code_depnum_ccdc_archive']))
+        self.ui.flackXLineEdit.setText("{}".format(cif_dic['_refine_ls_abs_structure_Flack']))
         try:
             dat_param = cif_dic['_refine_ls_number_reflns'] / cif_dic['_refine_ls_number_parameters']
         except (ValueError, ZeroDivisionError, TypeError):
@@ -890,6 +892,7 @@ class StartStructureDB(QMainWindow):
         else:  # regular database:
             if self.ui.moreResultsCheckBox.isChecked() or self.ui.adv_moreResultscheckBox.isChecked():
                 # more results:
+                print('more results on')
                 vol_threshold = 0.04
                 ltol = 0.08
                 atol = 1.8
