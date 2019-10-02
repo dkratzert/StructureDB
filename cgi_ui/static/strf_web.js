@@ -22,22 +22,22 @@ $(document).ready(function($){
 
     // The structure ID
     var strid = null;
-    
+
     $.get(url = cgifile+'/cellcheck', function (result) {
         if (result === 'true') {
             $("#cellsearchcsd_button").removeClass('invisible');
         }
     });
-    
+
     $.get(url = cgifile+'/version', function (result) {
         document.getElementById("version").innerHTML = result;
     });
-    
+
     // toggle for cell tooltip
     $('[data-toggle="cell_tooltip"]').tooltip();
 
     mygrid = $('#mygrid');
-    
+
     // The main structures table:
     mygrid.w2grid({
         name: 'mygrid',
@@ -61,7 +61,7 @@ $(document).ready(function($){
             //console.log(event);
         }
     });
-    
+
     //gets the window's height
     var b = $(window).height();
     var h = b * 0.35;
@@ -70,7 +70,7 @@ $(document).ready(function($){
     }
     // Define the grid height to 35% of the screen:
     mygrid.css("height", h);
-    
+
     // Do advanced search:
     var advanced_search_button = $("#advsearch-button");
     advanced_search_button.click(function(event) {
@@ -85,8 +85,9 @@ $(document).ready(function($){
         var datefield1 = document.getElementById("date1").value;
         var datefield2 = document.getElementById("date2").value;
         var itnum = $("#IT_number").val().split(" ")[0];
+        var r1val = document.getElementById("r1_val_adv").value;
         advanced_search(txt_in, txt_out, elements_in, elements_out, cell_adv, more_res,
-                        supercell, datefield1, datefield2, itnum, onlyelem);
+                        supercell, datefield1, datefield2, itnum, onlyelem, r1val);
     });
 
     function get_cell_from_p4p(p4pdata) {
@@ -168,7 +169,7 @@ $(document).ready(function($){
         }
     }
 
-    
+
     var dropZone = document.getElementById('dropZone');
 
     dropZone.addEventListener('dragover', function(e) {
@@ -176,7 +177,7 @@ $(document).ready(function($){
         e.preventDefault();
         //e.dataTransfer.dropEffect = 'copy';
     });
-    
+
     // Get file data on drop
     dropZone.addEventListener('drop', function(e) {
         e.stopPropagation();
@@ -203,7 +204,7 @@ $(document).ready(function($){
             reader.readAsText(files[0], "ASCII"); // start reading the file data.
         }
     });
-    
+
 
     // Check if element names are occouring more than one time:
     function is_elem_doubled(elements_in, elements_out) {
@@ -309,7 +310,7 @@ $(document).ready(function($){
                 //console.log(result);
             });
     });
-    
+
     // Switch between grow and fuse:
     $('#growCheckBox').click(function(){
         var jsmolcol = $("#jsmolcolumn");
@@ -326,7 +327,7 @@ $(document).ready(function($){
             });
         }
     });
-    
+
     // Switch between advanced and simple search:
     var advbutton = $('#toggle_advsearch-button');
     advbutton.click(function(){
@@ -362,7 +363,7 @@ $(document).ready(function($){
             //console.log(txt);
         }
     });
-    
+
     // Enter key pressed in the simple cell search field:
     $('#smpl_cellsrch').keypress(function(e) {
         if (e.which === 13) {  // enter key
@@ -392,12 +393,12 @@ $(document).ready(function($){
         $("#cell_copy_btn").addClass('invisible');
         $("#growCheckBoxgroup").addClass('invisible');
         $("#jsmolcolumn").addClass('invisible');
-        $("#jsmolMaincolumn").addClass('invisible');
+        $("#all_residuals").addClass('invisible');
         //$("#residualstable2").addClass('invisible');
         //$("#residuals").addClass('invisible');
         document.getElementById("cellrow").innerHTML = "Found " + numresult + " structures";
     }
-    
+
     function display_molecule(atoms) {
         Jmol._document = null;
         Jmol.getTMApplet("jmol", jsmol_options);
@@ -409,13 +410,13 @@ $(document).ready(function($){
         jsmolcol.removeClass('invisible');
         $("#jsmolMaincolumn").removeClass('invisible');
     }
-    
+
     function showprop(idstr) {
         /*
         This function uses AJAX POST calls to get the data of a structure and displays
         them below the main table.
         */
-        
+        $("#all_residuals").removeClass('invisible');
         // Uncheck the grow button:
         //$('#growCheckBox').prop("checked", false);
         var data;
@@ -493,7 +494,7 @@ $(document).ready(function($){
     };
 
     function advanced_search(text_in, text_out, elements_in, elements_out, cell_adv, more_res, supercell,
-                             date1, date2, itnum, onlyelem) {
+                             date1, date2, itnum, onlyelem, r1val) {
         var cell = cell_adv.replace(/\s+/g, ' ').trim();
         cell = cell.replace(/,/g, '.');  // replace comma with point
         if (!isValidCell(cell)) {
@@ -501,7 +502,7 @@ $(document).ready(function($){
         }
         var gridparams = {cell_search: cell, text_in: text_in, text_out: text_out, elements_in: elements_in,
                           elements_out: elements_out, more: more_res, supercell: supercell, date1: date1, date2: date2
-                          ,it_num: itnum, onlyelem: onlyelem};
+                          ,it_num: itnum, onlyelem: onlyelem, r1val: r1val};
         //console.log(gridparams);
         var url;
         w2ui['mygrid'].request('get-records', gridparams,

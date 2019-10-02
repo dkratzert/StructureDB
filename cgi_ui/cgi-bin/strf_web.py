@@ -13,7 +13,7 @@ dbfilename = "../structurefinder.sqlite"
 
 import socket
 
-names = ['PC9', 'DDT-2.local']
+names = ['PC9', 'DDT-2.local', 'DDT']
 # run on local ip on my PC:
 # print(socket.gethostname())
 if socket.gethostname() in names:
@@ -45,11 +45,10 @@ from ccdc.query import get_cccsd_path, search_csd, parse_results
 from cgi_ui.bottle import Bottle, static_file, template, redirect, request, response
 from displaymol.mol_file_writer import MolFile
 from displaymol.sdm import SDM
-from lattice import lattice
-from pymatgen.core import mat_lattice
+from pymatgen.core import lattice
 from searcher.database_handler import StructureTable
-from searcher.misc import is_valid_cell, get_list_of_elements, flatten, is_a_nonzero_file, format_sum_formula, \
-    combine_results
+from searcher.misc import is_valid_cell, get_list_of_elements, vol_unitcell, is_a_nonzero_file, format_sum_formula, \
+    combine_results, formula_dict_to_elements
 
 """
 TODO:
@@ -128,12 +127,13 @@ def adv():
     sublattice = (request.GET.supercell == "true")
     onlyelem = (request.GET.onlyelem == "true")
     it_num = request.GET.it_num
+    r1val = request.GET.r1val
     structures = StructureTable(dbfilename)
     print("Advanced search: elin:", elincl, 'elout:', elexcl, date1, '|', date2, '|', cell_search, 'txin:', txt_in,
           'txout:', txt_out, '|', 'more:', more_results, 'Sublatt:', sublattice, 'It-num:', it_num, 'only:', onlyelem)
     ids = advanced_search(cellstr=cell_search, elincl=elincl, elexcl=elexcl, txt=txt_in, txt_ex=txt_out,
                           sublattice=sublattice, more_results=more_results, date1=date1, date2=date2,
-                          structures=structures, it_num=it_num, onlythese=onlyelem)
+                          structures=structures, it_num=it_num, onlythese=onlyelem, r1val=r1val)
     print("--> Got {} structures from Advanced search.".format(len(ids)))
     return get_structures_json(structures, ids)
 
@@ -151,13 +151,13 @@ def jsmol_request():
         if request.POST.grow == 'true':
             symmcards = [x.split(',') for x in structures.get_row_as_dict(str_id)
             ['_space_group_symop_operation_xyz'].replace("'", "").replace(" ", "").split("\n")]
-            atoms = structures.get_atoms_table(str_id, cell[:6], cartesian=False, as_list=True)
+            atoms = structures.get_atoms_table(str_id, cartesian=False, as_list=True)
             if atoms:
                 sdm = SDM(atoms, symmcards, cell)
                 needsymm = sdm.calc_sdm()
                 atoms = sdm.packer(sdm, needsymm)
         else:
-            atoms = structures.get_atoms_table(str_id, cell[:6], cartesian=True, as_list=False)
+            atoms = structures.get_atoms_table(str_id, cartesian=True, as_list=False)
         try:
             m = MolFile(atoms)
             return m.make_mol()
@@ -270,10 +270,11 @@ def show_cellcheck():
     response.content_type = 'text/html; charset=UTF-8'
     data = {"my_ip" : site_ip,
             "title" : 'StructureFinder',
-            'str_id': cellstr, 'cent': cent,
-            'host'  : host}
+            'cellstr': cellstr,
+            'strid' : str_id,
+            'cent': cent,
+            'host'  : host,}
     output = template('./cgi_ui/views/cellcheckcsd', data)
-    # 'formula': formula_dict_to_elements(formula)}
     return output
 
 
@@ -284,6 +285,8 @@ def search_cellcheck_csd():
     """
     cmd = request.POST.cmd
     cell = request.POST.cell
+    elements = []
+    str_id = request.POST.str_id
     if not cell:
         return {}
     cent = request.POST.centering
@@ -298,6 +301,19 @@ def search_cellcheck_csd():
             print(e)
             return
         # print(results)
+        if str_id:
+            structures = StructureTable(dbfilename)
+            elements = formula_dict_to_elements(structures.get_calc_sum_formula(str_id)).split()
+            # TODO: filter by above elements
+            # something like this:
+            """for r in results:
+                formula = r['formula']
+                for e in formula:
+                    if e not in elements:
+                        continue
+                    else
+                        filtered.append(r)
+                        """
         print(len(results), 'Structures found...')
         return {"total": len(results), "records": results, "status": "success"}
     else:
@@ -404,8 +420,8 @@ def get_residuals_table1(structures: StructureTable, cif_dic: dict, structure_id
                cif_dic['_cell_formula_units_Z'],
                sumform,
                cif_dic['_diffrn_ambient_temperature'],
-               cif_dic['_refine_ls_wR_factor_ref'],
-               cif_dic['_refine_ls_R_factor_gt'],
+               cif_dic['_refine_ls_wR_factor_ref'] if cif_dic['_refine_ls_wR_factor_ref'] else cif_dic['_refine_ls_wR_factor_gt'],
+               cif_dic['_refine_ls_R_factor_gt'] if cif_dic['_refine_ls_R_factor_gt'] else cif_dic['_refine_ls_R_factor_all'],
                cif_dic['_refine_ls_goodness_of_fit_ref'],
                cif_dic['_refine_ls_shift_su_max'],
                peakhole,
@@ -425,6 +441,7 @@ def get_residuals_table2(cif_dic: dict) -> str:
         return ""
     wavelen = cif_dic['_diffrn_radiation_wavelength']
     thetamax = cif_dic['_diffrn_reflns_theta_max']
+    thetafull = cif_dic['_diffrn_reflns_theta_full']
     # d = lambda/2sin(theta):
     try:
         d = wavelen / (2 * math.sin(math.radians(thetamax)))
@@ -451,21 +468,23 @@ def get_residuals_table2(cif_dic: dict) -> str:
         <tr><td><b>Parameters</b></td>                              <td>{1}</td></tr>
         <tr><td><b>data/param</b></td>                              <td>{2:<5.1f}</td></tr>
         <tr><td><b>Restraints</b></td>                              <td>{3}</td></tr>
-        <tr><td><b>&theta;<sub>max</sub> [&deg;]</b></td>                    <td>{4}</td></tr>
-        <tr><td><b>&theta;<sub>full</sub> [&deg;]</b></td>                   <td>{5}</td></tr>
+        <tr><td><b>&theta;<sub>full</sub> [&deg;]</b> / 
+        <b>&theta;<sub>max</sub> [&deg;]</b></td>                    <td>{4} / {5}</td></tr>
         <tr><td><b>d [&angst;]</b></td>                             <td>{6:5.3f}</td></tr>
         <tr><td><b>completeness [%]</b></td>                            <td>{7:<5.1f}</td></tr>
-        <tr><td><b>CCDC Number</b></td>                             <td>{8}</td></tr>
+        <tr><td><b>Flack X parameter</b></td>                             <td>{8}</td></tr>
+        <tr><td><b>CCDC Number</b></td>                             <td>{9}</td></tr>
         </tbody>
     </table>
     """.format(cif_dic['_diffrn_reflns_number'],
                cif_dic['_refine_ls_number_parameters'],
                data_to_param,
                cif_dic['_refine_ls_number_restraints'],
-               thetamax,
-               cif_dic['_diffrn_reflns_theta_full'],
+               thetamax if thetamax else '?',
+               thetafull if thetafull else '?',
                d,
                compl,
+               cif_dic['_refine_ls_abs_structure_Flack'],
                cif_dic['_database_code_depnum_ccdc_archive'],
                cif_dic['_refine_ls_number_reflns'],
                cif_dic['_reflns_number_gt']
@@ -535,41 +554,51 @@ def find_cell(structures: StructureTable, cell: list, sublattice=False, more_res
     """
     Finds unit cells in db. Rsturns hits a a list of ids.
     """
-    if more_results:
-        # more results:
-        vol_threshold = 0.09
-        ltol = 0.2
-        atol = 2
+    dbversion = structures.get_database_version()
+    if dbversion == 1:
+        # Threshold for APEX db unit cells
+        if more_results:
+            # more results:
+            vol_threshold = 0.09
+            ltol = 0.2
+            atol = 2.0
+        else:
+            # regular:
+            vol_threshold = 0.03
+            ltol = 0.06
+            atol = 1.0
     else:
-        # regular:
-        vol_threshold = 0.03
-        ltol = 0.06
-        atol = 1
-    volume = lattice.vol_unitcell(*cell)
-    idlist = structures.find_by_volume(volume, vol_threshold)
+        # regular unit cells, no APEX special:
+        if more_results:
+            # more results:
+            vol_threshold = 0.02
+            ltol = 0.03
+            atol = 1.8
+        else:
+            # regular:
+            vol_threshold = 0.02
+            ltol = 0.03
+            atol = 1.0
+    volume = vol_unitcell(*cell)
+    cells = structures.find_by_volume(volume, vol_threshold)
     if sublattice:
         # sub- and superlattices:
         for v in [volume * x for x in [2.0, 3.0, 4.0, 6.0, 8.0, 10.0]]:
             # First a list of structures where the volume is similar:
-            idlist.extend(structures.find_by_volume(v, vol_threshold))
-        idlist = list(set(idlist))
-        idlist.sort()
+            cells.extend(structures.find_by_volume(v, vol_threshold))
+        cells = list(set(cells))
     idlist2 = []
     # Real lattice comparing in G6:
-    if idlist:
-        lattice1 = mat_lattice.Lattice.from_parameters_niggli_reduced(*cell)
-        cells = []
-        # SQLite can only handle 999 variables at once:
-        for cids in chunks(idlist, 500):
-            cells.extend(structures.get_cells_as_list(cids))
-        for num, cell_id in enumerate(idlist):
+    if cells:
+        lattice1 = lattice.Lattice.from_parameters(*cell)
+        for num, curr_cell in enumerate(cells):
             try:
-                lattice2 = mat_lattice.Lattice.from_parameters(*cells[num][:6])
+                lattice2 = lattice.Lattice.from_parameters(*curr_cell[1:7])
             except ValueError:
                 continue
             mapping = lattice1.find_mapping(lattice2, ltol, atol, skip_rotation_matrix=True)
             if mapping:
-                idlist2.append(cell_id)
+                idlist2.append(curr_cell[0])
     if idlist2:
         return idlist2
     else:
@@ -632,7 +661,7 @@ def find_dates(structures: StructureTable, date1: str, date2: str) -> list:
 
 def advanced_search(cellstr: str, elincl, elexcl, txt, txt_ex, sublattice, more_results,
                     date1: str = None, date2: str = None, structures: StructureTable = None,
-                    it_num: str = None, onlythese: bool = False) -> list:
+                    it_num: str = None, onlythese: bool = False, r1val: float = 0.0) -> list:
     """
     Combines all the search fields. Collects all includes, all excludes ad calculates
     the difference.
@@ -645,27 +674,52 @@ def advanced_search(cellstr: str, elincl, elexcl, txt, txt_ex, sublattice, more_
     txt_results = []
     txt_ex_results = []
     date_results = []
+    states = {'date'  : False,
+              'cell'  : False,
+              'elincl': False,
+              'elexcl': False,
+              'txt'   : False,
+              'txt_ex': False,
+              'spgr'  : False,
+              'rval'  : False}
     cell = is_valid_cell(cellstr)
     try:
         spgr = int(it_num.split()[0])
     except:
         spgr = 0
+    try:
+        rval = float(r1val)
+        states['rval'] = True
+    except ValueError:
+        rval = 0.0
     if cell:
+        states['cell'] = True
         cell_results = find_cell(structures, cell, sublattice=sublattice, more_results=more_results)
     if spgr:
+        states['spgr'] = True
         spgr_results = structures.find_by_it_number(spgr)
     if elincl or elexcl:
+        if elincl:
+            states['elincl'] = True
+        if elexcl:
+            states['elexcl'] = True
         elincl_results = search_elements(structures, elincl, elexcl, onlythese)
     if txt:
+        states['txt'] = True
         txt_results = [i[0] for i in structures.find_by_strings(txt)]
     if txt_ex:
+        states['txt_ex'] = True
         txt_ex_results = [i[0] for i in structures.find_by_strings(txt_ex)]
     if date1 != date2:
+        states['date'] = True
         date_results = find_dates(structures, date1, date2)
+    rval_results = []
+    if rval > 0.0:
+        rval_results = structures.find_by_rvalue(rval / 100)
     ####################
     results = combine_results(cell_results, date_results, elincl_results, results, spgr_results,
-                              txt_ex_results, txt_results)
-    return flatten(list(results))
+                              txt_ex_results, txt_results, rval_results, states)
+    return list(results)
 
 
 if __name__ == "__main__":

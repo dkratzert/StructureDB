@@ -3,16 +3,18 @@ Created on 09.02.2015
 
  ----------------------------------------------------------------------------
 * "THE BEER-WARE LICENSE" (Revision 42):
-* <daniel.kratzert@uni-freiburg.de> wrote this file. As long as you retain this 
-* notice you can do whatever you want with this stuff. If we meet some day, and 
+* <daniel.kratzert@uni-freiburg.de> wrote this file. As long as you retain this
+* notice you can do whatever you want with this stuff. If we meet some day, and
 * you think this stuff is worth it, you can buy me a beer in return.
 * ----------------------------------------------------------------------------
 
 @author: daniel
 """
-from math import sqrt
+
 import os
 import shutil
+from math import sqrt, cos, radians
+
 from searcher import constants
 
 
@@ -126,13 +128,13 @@ def is_a_nonzero_file(filename):
     """
     Check if a file exists and has some content.
 
-    >>> is_a_nonzero_file('misc.py')
+    >>> is_a_nonzero_file('./searcher/misc.py')
     True
     >>> is_a_nonzero_file('foo.bar')
     False
-    >>> is_a_nonzero_file('../test-data/test_zerofile.cif')
+    >>> is_a_nonzero_file('./test-data/test_zerofile.cif')
     False
-    >>> is_a_nonzero_file('../strf.py')
+    >>> is_a_nonzero_file('./strf.py')
     True
     """
     filesize = False
@@ -149,7 +151,7 @@ def is_a_nonzero_file(filename):
 
 
 def get_error_from_value(value: str) -> tuple:
-    """ 
+    """
     Returns the error value from a number string.
     :type value: str
     :rtype: str
@@ -217,7 +219,7 @@ def format_sum_formula(sumform: dict, break_after: int = 99) -> str:
     >>> format_sum_formula({'C': 12, 'H': 6, 'O': 3, 'Mn': 7})
     '<html><body>C<sub>12 </sub>H<sub>6 </sub>O<sub>3 </sub>Mn<sub>7 </sub></body></html>'
     """
-    #atlist = formula_str_to_dict(sumform)
+    # atlist = formula_str_to_dict(sumform)
     if not sumform:
         return ''
     l = ['<html><body>']
@@ -241,7 +243,7 @@ def format_sum_formula(sumform: dict, break_after: int = 99) -> str:
         num += 1
     l.append('</body></html>')
     formula = "".join(l)
-    #print(formula)
+    # print(formula)
     return formula
 
 
@@ -263,8 +265,10 @@ def formula_dict_to_elements(formula: dict):
     string like C H O.
     >>> formula_dict_to_elements({'Elem_C': 12, 'Elem_H': 6.5, 'Elem_O': 3, 'Elem_Mn': 7})
     'C H O Mn'
+    >>> formula_dict_to_elements({'Elem_C': 12, 'Elem_H': 6.5, 'Elem_O': 3, 'Elem_Mn': 7, 'Elem_N': 0})
+    'C H O Mn'
     """
-    formstr = ' '.join([x[5:] for x in formula.keys()])
+    formstr = ' '.join([x[5:] for x in formula.keys() if formula[x]])
     return formstr
 
 
@@ -428,41 +432,84 @@ def is_valid_cell(cell: str = None) -> list:
     return cell
 
 
-if __name__ == '__main__':
-    pass
-
-
 def combine_results(cell_results, date_results, elincl_results, results, spgr_results,
-                    txt_ex_results, txt_results):
+                    txt_ex_results, txt_results, rval_results: float, states: dict) -> set:
     """
     Combines all search results together. Returns a list with database ids from found structures.
     """
-    if cell_results:
+    if states['cell']:
         results.extend(cell_results)
-    if spgr_results:
+    if states['spgr']:
         spgr_results = set(spgr_results)
         if results:
             results = set(results).intersection(spgr_results)
         else:
-            results = spgr_results
-    if elincl_results:
+            if states['cell']:
+                results = set([])
+            else:
+                results = spgr_results
+    if states['elincl'] or states['elexcl']:
         elincl_results = set(elincl_results)
         if results:
             results = set(results).intersection(elincl_results)
         else:
-            results = elincl_results
-    if txt_results:
+            if states['spgr'] or states['cell']:
+                results = set([])
+            else:
+                results = elincl_results
+    if states['txt']:
         txt_results = set(txt_results)
         if results:
             results = set(results).intersection(txt_results)
         else:
-            results = txt_results
-    if txt_ex_results:
+            if states['elincl'] or states['spgr'] or states['cell']:
+                results = set([])
+            else:
+                results = txt_results
+    if states['txt_ex']:
         txt_ex_results = set(txt_ex_results)
         results = set(results) - set(txt_ex_results)
-    if date_results:
+    if states['date']:
+        date_results = set(date_results)
         if results:
             results = set(results).intersection(date_results)
+        else:  # no results from other searches:
+            if states['txt'] or states['elincl'] or states['spgr'] or states['cell']:
+                results = set([])
+            else:
+                results = date_results
+    if states['rval']:
+        rval_results = set(rval_results)
+        if results:
+            results = set(results).intersection(rval_results)
         else:
-            results = date_results
+            if states['txt'] or states['elincl'] or states['spgr'] or states['cell'] or states['date']:
+                results = set([])
+            else:
+                results = rval_results
     return results
+
+
+def vol_unitcell(a, b, c, al, be, ga):
+    """
+    calculates the volume of a unit cell
+    :type a: float
+    :type b: float
+    :type c: float
+    :type al: float
+    :type be: float
+    :type ga: float
+
+    >>> v = vol_unitcell(2, 2, 2, 90, 90, 90)
+    >>> print(v)
+    8.0
+
+    """
+    # ca, cb, cg = cos(radians(al)), cos(radians(be)), cos(radians(ga))
+    v = a * b * c * sqrt(1 + 2 * cos(radians(al)) * cos(radians(be)) * cos(radians(ga))
+                         - cos(radians(al)) ** 2 - cos(radians(be)) ** 2 - cos(radians(ga)) ** 2)
+    return v
+
+
+if __name__ == '__main__':
+    pass

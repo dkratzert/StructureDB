@@ -186,8 +186,11 @@
         <div class="column col-12">
             <div id="mygrid" style="height: 450px"></div>
         </div>
+
+        <br>
     </div>
 
+    <!-- End of collapsible for search options. -->
     <div class="row">
         <div class="column col-sm-12">
             <div class="card mt-2">
@@ -241,5 +244,3 @@
     </address>
 
 </div>  <!-- End of the main container div -->
-
-

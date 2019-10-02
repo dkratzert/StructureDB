@@ -1,11 +1,12 @@
-# -*- mode: python ; coding: utf-8 -*-
+# -*- mode: python -*-
 
 block_cipher = None
+import os
 
 
 a = Analysis(['strf.py'],
-             pathex=['D:\\Programme\\Windows Kits\\10\\Redist\\ucrt\\DLLs\\x64', 'D:\\GitHub\\StructureFinder'],
-             binaries=[('C:\\tools\\opengl64\\opengl32sw.dll', 'opengl32sw.dll')],
+             pathex=[os.path.abspath(SPECPATH)],
+             binaries=[],
              datas=[('gui', 'gui'), ('displaymol', 'displaymol'), ('icons', 'icons')],
              hiddenimports=['PyQt5.sip'],
              hookspath=[],
@@ -33,5 +34,4 @@ coll = COLLECT(exe,
                a.datas,
                strip=False,
                upx=True,
-               upx_exclude=[],
                name='StructureFinder')
