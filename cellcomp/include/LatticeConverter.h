@@ -1,13 +1,35 @@
+#ifndef LATTICECONVERTER_H
+#define LATTICECONVERTER_H
+
+#include "LRL_Cell.h"
 #include "G6.h"
 #include "LRL_Cell.h"
 #include "MatG6.h"
-#include "S6.h"
+//#include "S6.h"
 #include "LatticeConverter.h"
 #include "LRL_ToString.h"
 #include "Niggli.h"
-#include "Selling.h"
+//#include "Selling.h"
 
 #include <string>
+
+class LatticeConverter {
+   enum eOutputType { etext, emaxima };
+private:
+   eOutputType m_OutputType;
+
+   void TextOutput  (const std::string& label, const std::string& lattice, const LRL_Cell& cell) const;
+
+public:
+   LatticeConverter(const eOutputType type = etext);
+
+   void SetOutputMaxima(void);
+   void SetOutputText(void);
+   static LRL_Cell NiggliReduceCell(const std::string& lattice, const LRL_Cell& cell);
+   //static LRL_Cell SellingReduceCell(const std::string& lattice, const LRL_Cell& cell);
+   static LRL_Cell MakePrimitiveCell(const std::string& lattice, const LRL_Cell& cell);
+};
+
 
 
 void LatticeConverter::TextOutput(const std::string& label, const std::string& lattice, const LRL_Cell& cell) const {
@@ -15,7 +37,7 @@ void LatticeConverter::TextOutput(const std::string& label, const std::string& l
    std::cout << "lattice " << lattice << std::endl;
    std::cout << "LRL_Cell  " << LRL_ToString(cell) << std::endl;
    std::cout << "G6 " << LRL_ToString(G6(cell)) << std::endl;
-   std::cout << "Scalars " << LRL_ToString(S6(cell)) << std::endl;
+   //std::cout << "Scalars " << LRL_ToString(S6(cell)) << std::endl;
 }
 
 LatticeConverter::LatticeConverter(const eOutputType type)
@@ -47,7 +69,7 @@ LRL_Cell LatticeConverter::NiggliReduceCell(const std::string& lattice, const LR
       return LRL_Cell();
    }
 }
-
+/*
 LRL_Cell LatticeConverter::SellingReduceCell(const std::string& lattice, const LRL_Cell& cell) {
    const G6 g6 = G6(cell);
    const S6 tempS6 = g6;
@@ -61,3 +83,5 @@ LRL_Cell LatticeConverter::SellingReduceCell(const std::string& lattice, const L
       return LRL_Cell();
    }
 }
+*/
+#endif //LATTICECONVERTER_H

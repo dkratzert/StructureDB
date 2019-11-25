@@ -14,7 +14,7 @@
 
 #include <string>
 
-//StoreResults<std::string, G6> g_store(5);
+StoreResults<std::string, G6> g_store(5);
 
 /*
 R5
