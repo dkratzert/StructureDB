@@ -1,4 +1,4 @@
-from math import pi
+from math import pi, cos, sqrt
 from typing import Tuple
 
 import numpy as np
@@ -13,12 +13,7 @@ def abs_cap(val, max_abs_val=1):
     return max(min(val, max_abs_val), -max_abs_val)
 
 
-def lattice_from_parameters(a: float,
-                            b: float,
-                            c: float,
-                            alpha: float,
-                            beta: float,
-                            gamma: float):
+def lattice_from_parameters(a: float, b: float, c: float, alpha: float, beta: float, gamma: float):
     """
     Create a Lattice using unit cell lengths and angles (in degrees).
     """
@@ -57,17 +52,41 @@ def angles(m) -> Tuple[float]:
     return angles.tolist()
 
 
+def cell_to_g6(uc):
+    """ Take a reduced Niggli Cell, and turn it into the G6 representation """
+    a = uc[0] ** 2
+    b = uc[1] ** 2
+    c = uc[2] ** 2
+    d = 2. * uc[1] * uc[2] * cos(uc[3])
+    e = 2. * uc[0] * uc[2] * cos(uc[4])
+    f = 2. * uc[0] * uc[1] * cos(uc[5])
+    return [a, b, c, d, e, f]
+
+
 if __name__ == '__main__':
     from spglib import spglib
     from cellcomp import ncdist
+
     c1 = [5.2601, 9.1644, 10.6090, 104.851, 104.324, 100.457]
     c2 = [5.2684, 9.2080, 10.6641, 69.559, 76.132, 79.767]
-    c3 = [7.745 ,  11.728  , 21.321  , 78.03  , 90.00 ,  70.72]
-    matrix = spglib.niggli_reduce(lattice_from_parameters(*c1))
-    matrix2 = spglib.niggli_reduce(lattice_from_parameters(*c2))
-    #prim = spglib.standardize_cell((lattice_from_parameters(*c3), [[0, 0, 0]], [0]), to_primitive=True)
+    c3 = [float(x) for x in "100 100 100 90 90 90".split()]
+    c4 = [float(x) for x in "99 99 99 89 89 89".split()]
+    
+    c5 = [57.98, 57.98, 57.98, 92.02, 92.02, 92.02]
+    c6 = [80.36, 80.36, 99.44, 90, 90, 120]
+    c7 = [80.949, 80.572, 57.098, 90.0, 90.35, 90.0]
+    #
+    c8 = [78.961, 82.328, 57.031, 90.00, 93.44, 90.00]
+    c9 = [80.36, 80.36, 99.44, 90, 90, 120]
+    matrix = spglib.niggli_reduce(lattice_from_parameters(*c3))
+    matrix2 = spglib.niggli_reduce(lattice_from_parameters(*c4))
+    #prim = spglib.standardize_cell((lattice_from_parameters(*c6), [[0, 0, 0]], [0]), to_primitive=True)
     #print('primitive:', lengths(prim[0]), angles(prim[0]))
     #print(matrix)
     print('niggli reduced:', lengths(matrix), angles(matrix))
-    ncd = ncdist.ncdist(lengths(matrix)+angles(matrix), lengths(matrix2)+angles(matrix2))
-    print(ncd)
+    g61 = cell_to_g6(lengths(matrix)+angles(matrix))
+    g62 = cell_to_g6(lengths(matrix2)+angles(matrix2))
+    print('g6:', g61, g62)
+    ncd = ncdist.ncdist(g61, g62)
+    print('with g6:', 0.1*sqrt(ncd))
+    print('with standard cell:', 0.1*sqrt(ncdist.ncdist(lengths(matrix)+angles(matrix), lengths(matrix2)+angles(matrix2))))

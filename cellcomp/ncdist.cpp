@@ -33,7 +33,7 @@ double NCDist_wrapper(std::vector<double> lst1, std::vector<double> lst2){
     std::cout << "\n";
     double raw_ncdist = NCDist(mm1, mm2);
     std::cout << "raw: " << raw_ncdist << "\n";
-    return 0.1*std::sqrt(raw_ncdist);
+    return raw_ncdist;
 }
 
 
