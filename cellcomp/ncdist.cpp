@@ -5,10 +5,8 @@ setup_pybind11(cfg)
 */
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-//#include <include/G6.h>
-#include <include/NCDist.h>
-//#include <include/LatticeConverter.h>
-//#include <include/LRL_Cell.h>
+#include <NCDist.h>
+
 
 namespace py = pybind11;
 
@@ -39,14 +37,7 @@ double NCDist_wrapper(std::vector<double> lst1, std::vector<double> lst2){
 }
 
 
-/*G6 niggli_reduce_wrapper(const std::string &lattice, std::vector<double> &cell){
-    LRL_Cell lcell = LRL_Cell(cell[0], cell[1], cell[2], cell[3], cell[4], cell[5]);
-    G6 prim1 = LatticeConverter::NiggliReduceCell(lattice, lcell);
-    return prim1;
-}*/
-
 PYBIND11_MODULE(ncdist, m) {
     m.def("ncdist", &NCDist_wrapper);
-    //m.def("niggli_reduce", &niggli_reduce_wrapper);
 }
 
