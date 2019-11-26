@@ -1,4 +1,3 @@
-import this
 from math import pi, cos, sqrt, radians
 from typing import Tuple, Union, List
 
@@ -79,13 +78,29 @@ def ncdist_fromcell(cell1, cell2):
     return 0.01 * sqrt(ncdist.ncdist(G6a, G6b))
 
 
+def IsRhombohedralAsHex(v):
+    HexPerp = np.identity(6) - np.array(1. / 3.) * np.array([[1, 1, 0, 0, 0, -1],
+                                                             [1, 1, 0, 0, 0, -1],
+                                                             [0, 0, 3, 0, 0, 0],
+                                                             [0, 0, 0, 0, 0, 0],
+                                                             [0, 0, 0, 0, 0, 0],
+                                                             [-1, -1, 0, 0, 0, 1]])
+    RhmPerp = np.identity(6) - np.array(1. / 3.) * np.array([[1, 1, 1, 0, 0, 0],
+                                                             [1, 1, 1, 0, 0, 0],
+                                                             [1, 1, 1, 0, 0, 0],
+                                                             [0, 0, 0, 1, 1, 1],
+                                                             [0, 0, 0, 1, 1, 1],
+                                                             [0, 0, 0, 1, 1, 1]])
+    return np.linalg.norm(HexPerp * v) < np.linalg.norm(RhmPerp * v)
+
+
 def make_primitive(cell: Union[List, Tuple], latt_type: str):
     """
     Port of C++ code from https://github.com/yayahjb/ncdist
     """
     latt_type = latt_type.upper()
     if latt_type == 'P':
-        return cell
+        return np.identity(6)
     elif latt_type == 'I':
         # for monoclinic, assumes b unique:
         return np.array([[1, 0, 0, 0, 0, 0],
@@ -96,34 +111,51 @@ def make_primitive(cell: Union[List, Tuple], latt_type: str):
                          [0, 0, 0, 0, 0, 1]])
     elif latt_type == 'A':
         # for monoclinic, assumes b unique:
-        return np.array([[1, 0, 0, 0, 0, 0], 
-                         [0, 1, 0, 0, 0, 0], 
-                         [0, .25, .25, .25, 0, 0], 
-                         [0, 1, 0, .5, 0, 0,], 
-                         [0, 0, 0, 0, .5, .5], 
+        return np.array([[1, 0, 0, 0, 0, 0],
+                         [0, 1, 0, 0, 0, 0],
+                         [0, .25, .25, .25, 0, 0],
+                         [0, 1, 0, .5, 0, 0, ],
+                         [0, 0, 0, 0, .5, .5],
                          [0, 0, 0, 0, 0, 1]])
     elif latt_type == 'B':
         # for monoclinic, assumes c unique:
-        return np.array( "1 0 0 0 0 0   0 1 0 0 0 0   .25 0 .25 0 .25 0   0 0 0 .5 0 .5   1 0 0 0 .5 0   0 0 0 0 0 1" )
+        return np.array([[1, 0, 0, 0, 0, 0],
+                         [0, 1, 0, 0, 0, 0],
+                         [.25, 0, .25, 0, .25, 0],
+                         [0, 0, 0, .5, 0, .5],
+                         [1, 0, 0, 0, .5, 0],
+                         [0, 0, 0, 0, 0, 1]])
     elif latt_type == 'C':
         # for monoclinic, assumes b unique:
-        return np.array( "1 0 0 0 0 0   .25 .25 0 0 0 .25   0 0 1 0 0 0    0 0 0 .5 .5 0   0 0 0 0 1 0   1 0 0 0 0 .5" )
+        return np.array([[1, 0, 0, 0, 0, 0],
+                         [.25, .25, 0, 0, 0, .25],
+                         [0, 0, 1, 0, 0, 0],
+                         [0, 0, 0, .5, .5, 0],
+                         [0, 0, 0, 0, 1, 0],
+                         [1, 0, 0, 0, 0, .5]])
     elif latt_type == 'F':
-        return np.array(".25 .25 0 0 0 .25     .25 0 .25 0 .25 0     0 .25 .25 .25  0 0    0 0 .5 .25 .25 .25     0 .5 0 .25 .25 .25     .5 0 0 .25 .25 .25" )
-    elif latt_type == 'R' or latt_type == 'H'  IsRhombohedralAsHex(*this) )
-    return (1.0 / 9.0) * Mat66(
-            "1 1 1 1 -1 -1    4 1 1  1  2  2     1  4  1  -2  -1  2     -4  -4  2  -1  1  -5     2  -4  2  -1  -2  1     -4  2  2  2  1  1 ");
+        return np.array([[.25, .25, 0, 0, 0, .25],
+                         [.25, 0, .25, 0, .25, 0],
+                         [0, .25, .25, .25, 0, 0],
+                         [0, 0, .5, .25, .25, .25],
+                         [0, .5, 0, .25, .25, .25],
+                         [.5, 0, 0, .25, .25, .25]])
+    elif latt_type == 'R' or latt_type == 'H' and IsRhombohedralAsHex(cell):
+        return (1.0 / 9.0) * np.array([[1, 1, 1, 1, -1, -1],
+                                       [4, 1, 1, 1, 2, 2],
+                                       [1, 4, 1, -2, -1, 2],
+                                       [-4, -4, 2, -1, 1, -5],
+                                       [2, -4, 2, -1, -2, 1],
+                                       [-4, 2, 2, 2, 1, 1]])
 
 
-const Mat66 HexPerp(Mat66().Eye() - (1./3.)*Mat66( " 1 1 0 0 0 -1   1 1 0 0 0 -1   0 0 3 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0   -1 -1 0 0 0 1 " ) );
-const Mat66 RhmPerp(Mat66().Eye() - (1./3.)*Mat66( " 1 1 1 0 0 0   1 1 1 0 0 0   1 1 1 0 0 0   0 0 0 1 1 1    0 0 0 1 1 1    0 0 0 1 1 1 " ) );
+Pc = np.array([[1, 1, 0], [-1, 1, 0], [0, 0, 1.]])
+Pr = np.array([[2. / 3., -1./3.0, -1/3.], [1/3, 1/3, -2/3], [1/3, 1/3, 1/3]])
 
-IsRhombohedralAsHex( const G6& v ) {
-   return (HexPerp*v).norm() < (RhmPerp*v).norm();
 
 if __name__ == '__main__':
     from spglib import spglib
-from cellcomp import ncdist
+    from cellcomp import ncdist
 
 c1 = [5.2601, 9.1644, 10.6090, 104.851, 104.324, 100.457]
 c2 = [5.2684, 9.2080, 10.6641, 69.559, 76.132, 79.767]
@@ -133,7 +165,7 @@ c3a = [float(x) for x in "7.5675 13.1966 11.3486   90.000  103.608   90.000 ".sp
 c4a = [float(x) for x in "7.6870 13.2020 11.5790   90.000  105.840   90.000 ".split()]
 
 c5 = [57.98, 57.98, 57.98, 92.02, 92.02, 92.02]  # R32  1FE5
-c6 = [80.36, 80.36, 99.44, 90, 90, 120]  # R3   1U4J
+c6 = [80.36, 80.36, 99.44, 90, 90, 120]  # R3   1U4J, primitive= 57.02, 57.02, 57.02, 89.605, 89.605, 89.605
 c7 = [80.949, 80.572, 57.098, 90.0, 90.35, 90.0]  # C2  1G2X
 #
 c8 = [78.961, 82.328, 57.031, 90.00, 93.44, 90.00]
@@ -159,3 +191,4 @@ print(ncdist_fromcell(c3, c4))
 print('c5:')
 print(ncdist_fromcell(c6, c5))
 print(ncdist_fromcell(c5, c7))
+print(lattice_to_cell(spglib.niggli_reduce((lattice_from_parameters(*c7)*Pr))))
