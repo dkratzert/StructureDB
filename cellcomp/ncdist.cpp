@@ -23,16 +23,16 @@ double NCDist_wrapper(std::vector<double> lst1, std::vector<double> lst2){
     double mm2[6];
     for (int i=0; i<6; i++) {
         mm1[i] = lst1[i];
-        std::cout << mm1[i] << ", ";
+        //std::cout << mm1[i] << ", ";
     }
-    std::cout << "\n";
+    //std::cout << "\n";
     for (int j=0; j<6; j++) {
         mm2[j] = lst2[j];
-        std::cout << mm2[j] << ", ";
+        //std::cout << mm2[j] << ", ";
     }
-    std::cout << "\n";
+    //std::cout << "\n";
     double raw_ncdist = NCDist(mm1, mm2);
-    std::cout << "raw: " << raw_ncdist << "\n";
+    //std::cout << "raw: " << raw_ncdist << "\n";
     return raw_ncdist;
 }
 

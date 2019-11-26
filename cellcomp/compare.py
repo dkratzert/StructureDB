@@ -1,5 +1,6 @@
-from math import pi, cos, sqrt
-from typing import Tuple
+import this
+from math import pi, cos, sqrt, radians
+from typing import Tuple, Union, List
 
 import numpy as np
 
@@ -25,31 +26,35 @@ def lattice_from_parameters(a: float, b: float, c: float, alpha: float, beta: fl
     val = abs_cap(val)
     gamma_star = np.arccos(val)
     vector_a = [a * sin_beta, 0.0, a * cos_beta]
-    vector_b = [
-        -b * sin_alpha * np.cos(gamma_star),
-        b * sin_alpha * np.sin(gamma_star),
-        b * cos_alpha,
-    ]
+    vector_b = [-b * sin_alpha * np.cos(gamma_star),
+                b * sin_alpha * np.sin(gamma_star),
+                b * cos_alpha, ]
     vector_c = [0.0, 0.0, float(c)]
     return [vector_a, vector_b, vector_c]
 
 
 def lengths(matrix):
+    if not isinstance(matrix, np.ndarray):
+        matrix = np.ndarray(matrix, dtype=float)
     return np.sqrt(np.sum(matrix ** 2, axis=1)).tolist()
 
 
-def angles(m) -> Tuple[float]:
+def angles(matrix) -> Tuple[float]:
     """
     Returns the angles (alpha, beta, gamma) of the lattice.
     """
-    lengt = lengths(m)
+    lengt = lengths(matrix)
     angles = np.zeros(3)
     for i in range(3):
         j = (i + 1) % 3
         k = (i + 2) % 3
-        angles[i] = abs_cap(np.dot(m[j], m[k]) / (lengt[j] * lengt[k]))
+        angles[i] = abs_cap(np.dot(matrix[j], matrix[k]) / (lengt[j] * lengt[k]))
     angles = np.arccos(angles) * 180.0 / pi
     return angles.tolist()
+
+
+def lattice_to_cell(lattice):
+    return lengths(lattice) + angles(lattice)
 
 
 def cell_to_g6(uc):
@@ -57,36 +62,100 @@ def cell_to_g6(uc):
     a = uc[0] ** 2
     b = uc[1] ** 2
     c = uc[2] ** 2
-    d = 2. * uc[1] * uc[2] * cos(uc[3])
-    e = 2. * uc[0] * uc[2] * cos(uc[4])
-    f = 2. * uc[0] * uc[1] * cos(uc[5])
+    d = 2 * uc[1] * uc[2] * cos(radians(uc[3]))
+    e = 2 * uc[0] * uc[2] * cos(radians(uc[4]))
+    f = 2 * uc[0] * uc[1] * cos(radians(uc[5]))
     return [a, b, c, d, e, f]
 
 
+def ncdist_fromcell(cell1, cell2):
+    """
+    Does a niggli reduction, G6 vector and distance calculation from two given unit cells.
+    """
+    reduced1 = lattice_to_cell(spglib.niggli_reduce(lattice_from_parameters(*cell1)))
+    G6a = cell_to_g6(reduced1)
+    reduced2 = lattice_to_cell(spglib.niggli_reduce(lattice_from_parameters(*cell2)))
+    G6b = cell_to_g6(reduced2)
+    return 0.01 * sqrt(ncdist.ncdist(G6a, G6b))
+
+
+def make_primitive(cell: Union[List, Tuple], latt_type: str):
+    """
+    Port of C++ code from https://github.com/yayahjb/ncdist
+    """
+    latt_type = latt_type.upper()
+    if latt_type == 'P':
+        return cell
+    elif latt_type == 'I':
+        # for monoclinic, assumes b unique:
+        return np.array([[1, 0, 0, 0, 0, 0],
+                         [0, 1, 0, 0, 0, 0],
+                         [0.25, 0.25, 0.25, 0.25, 0.25, 0.25],
+                         [0, 1, 0, 0.5, 0, 0.5],
+                         [1, 0, 0, 0, .5, .5],
+                         [0, 0, 0, 0, 0, 1]])
+    elif latt_type == 'A':
+        # for monoclinic, assumes b unique:
+        return np.array([[1, 0, 0, 0, 0, 0], 
+                         [0, 1, 0, 0, 0, 0], 
+                         [0, .25, .25, .25, 0, 0], 
+                         [0, 1, 0, .5, 0, 0,], 
+                         [0, 0, 0, 0, .5, .5], 
+                         [0, 0, 0, 0, 0, 1]])
+    elif latt_type == 'B':
+        # for monoclinic, assumes c unique:
+        return np.array( "1 0 0 0 0 0   0 1 0 0 0 0   .25 0 .25 0 .25 0   0 0 0 .5 0 .5   1 0 0 0 .5 0   0 0 0 0 0 1" )
+    elif latt_type == 'C':
+        # for monoclinic, assumes b unique:
+        return np.array( "1 0 0 0 0 0   .25 .25 0 0 0 .25   0 0 1 0 0 0    0 0 0 .5 .5 0   0 0 0 0 1 0   1 0 0 0 0 .5" )
+    elif latt_type == 'F':
+        return np.array(".25 .25 0 0 0 .25     .25 0 .25 0 .25 0     0 .25 .25 .25  0 0    0 0 .5 .25 .25 .25     0 .5 0 .25 .25 .25     .5 0 0 .25 .25 .25" )
+    elif latt_type == 'R' or latt_type == 'H'  IsRhombohedralAsHex(*this) )
+    return (1.0 / 9.0) * Mat66(
+            "1 1 1 1 -1 -1    4 1 1  1  2  2     1  4  1  -2  -1  2     -4  -4  2  -1  1  -5     2  -4  2  -1  -2  1     -4  2  2  2  1  1 ");
+
+
+const Mat66 HexPerp(Mat66().Eye() - (1./3.)*Mat66( " 1 1 0 0 0 -1   1 1 0 0 0 -1   0 0 3 0 0 0   0 0 0 0 0 0   0 0 0 0 0 0   -1 -1 0 0 0 1 " ) );
+const Mat66 RhmPerp(Mat66().Eye() - (1./3.)*Mat66( " 1 1 1 0 0 0   1 1 1 0 0 0   1 1 1 0 0 0   0 0 0 1 1 1    0 0 0 1 1 1    0 0 0 1 1 1 " ) );
+
+IsRhombohedralAsHex( const G6& v ) {
+   return (HexPerp*v).norm() < (RhmPerp*v).norm();
+
 if __name__ == '__main__':
     from spglib import spglib
-    from cellcomp import ncdist
+from cellcomp import ncdist
 
-    c1 = [5.2601, 9.1644, 10.6090, 104.851, 104.324, 100.457]
-    c2 = [5.2684, 9.2080, 10.6641, 69.559, 76.132, 79.767]
-    c3 = [float(x) for x in "100 100 100 90 90 90".split()]
-    c4 = [float(x) for x in "99 99 99 89 89 89".split()]
-    
-    c5 = [57.98, 57.98, 57.98, 92.02, 92.02, 92.02]
-    c6 = [80.36, 80.36, 99.44, 90, 90, 120]
-    c7 = [80.949, 80.572, 57.098, 90.0, 90.35, 90.0]
-    #
-    c8 = [78.961, 82.328, 57.031, 90.00, 93.44, 90.00]
-    c9 = [80.36, 80.36, 99.44, 90, 90, 120]
-    matrix = spglib.niggli_reduce(lattice_from_parameters(*c3))
-    matrix2 = spglib.niggli_reduce(lattice_from_parameters(*c4))
-    #prim = spglib.standardize_cell((lattice_from_parameters(*c6), [[0, 0, 0]], [0]), to_primitive=True)
-    #print('primitive:', lengths(prim[0]), angles(prim[0]))
-    #print(matrix)
-    print('niggli reduced:', lengths(matrix), angles(matrix))
-    g61 = cell_to_g6(lengths(matrix)+angles(matrix))
-    g62 = cell_to_g6(lengths(matrix2)+angles(matrix2))
-    print('g6:', g61, g62)
-    ncd = ncdist.ncdist(g61, g62)
-    print('with g6:', 0.1*sqrt(ncd))
-    print('with standard cell:', 0.1*sqrt(ncdist.ncdist(lengths(matrix)+angles(matrix), lengths(matrix2)+angles(matrix2))))
+c1 = [5.2601, 9.1644, 10.6090, 104.851, 104.324, 100.457]
+c2 = [5.2684, 9.2080, 10.6641, 69.559, 76.132, 79.767]
+c3 = [float(x) for x in "100 100 100 90 90 90".split()]
+c4 = [float(x) for x in "99 99 99 89 89 89".split()]
+c3a = [float(x) for x in "7.5675 13.1966 11.3486   90.000  103.608   90.000 ".split()]
+c4a = [float(x) for x in "7.6870 13.2020 11.5790   90.000  105.840   90.000 ".split()]
+
+c5 = [57.98, 57.98, 57.98, 92.02, 92.02, 92.02]  # R32  1FE5
+c6 = [80.36, 80.36, 99.44, 90, 90, 120]  # R3   1U4J
+c7 = [80.949, 80.572, 57.098, 90.0, 90.35, 90.0]  # C2  1G2X
+#
+c8 = [78.961, 82.328, 57.031, 90.00, 93.44, 90.00]
+c9 = [80.36, 80.36, 99.44, 90, 90, 120]
+#
+c10 = [3.1457, 3.1457, 3.1451, 60.089, 60.0887, 60.104]
+c11 = [3.1456, 3.1458, 3.1451, 90.089, 119.907, 119.898]
+#
+# primitice cell:
+c12 = [10., 10., 10., 112., 112.5, 112.9]  # G6: (100, 100, 100, -74.9, -76.5, -77.8)
+# reduced cell:
+c13 = [8.41, 10.0, 10.0, 112, 106.3, 106.8]  # reduced G6: (70.7, 100, 100,-74.9,-47-3,-48.5)
+
+reduced = lattice_to_cell(spglib.niggli_reduce(lattice_from_parameters(*c12)))
+print('g6 of 12:', cell_to_g6(c12))
+print('reduced:', reduced)
+G6a = cell_to_g6(reduced)
+print('reduced g6 of 12:', G6a)
+
+print(ncdist_fromcell(c1, c2))
+print(ncdist_fromcell(c3a, c4a))
+print(ncdist_fromcell(c3, c4))
+print('c5:')
+print(ncdist_fromcell(c6, c5))
+print(ncdist_fromcell(c5, c7))
