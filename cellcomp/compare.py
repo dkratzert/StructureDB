@@ -17,9 +17,29 @@ def abs_cap(val, max_abs_val=1):
     return max(min(val, max_abs_val), -max_abs_val)
 
 
+# Transformation matrix from the standardized unit cell to the primitive cell:
+"""https://atztogo.github.io/spglib/definition.html#transformation-to-a-primitive-cell"""
+Pa = np.array([[1, 0, 0],
+               [0, 0.5, -0.5],
+               [0, 0.5, 0.5]])
+Pc = np.array([[0.5, 0.5, 0],
+               [-0.5, 0.5, 0],
+               [0, 0, 1.]])
+Pr = np.array([[2. / 3., -1. / 3., -1 / 3.],
+               [1 / 3., 1 / 3., -2 / 3.],
+               [1 / 3., 1 / 3., 1 / 3.]])
+Pi = np.array([[-0.5, 0.5, 0.5],
+               [0.5, -0.5, 0.5],
+               [0.5, 0.5, -0.5]])
+Pf = np.array([[0, 0.5, 0.5],
+               [0.5, 0, 0.5],
+               [0.5, 0.5, 0]])
+
+
 class Lattice():
     def __init__(self, cell):
         self.cell = cell
+        self.lattice_vect = self.lattice_from_parameters(*cell)
 
     def lattice_from_parameters(self, a: float, b: float, c: float, alpha: float, beta: float, gamma: float):
         """
@@ -36,6 +56,23 @@ class Lattice():
                     b * cos_alpha, ]
         vector_c = [0.0, 0.0, float(c)]
         return [vector_a, vector_b, vector_c]
+
+    @property
+    def niggli_reduced(self):
+        """
+        Returns the niggli reduced basis vectors.
+        """
+        return spglib.niggli_reduce(self.lattice_vect)
+
+    def to_primitive_lattice(self, latt_type: str):
+        """
+        Transforms the lattice to a primitive lattice.
+        :parameter latt_type: Lattice type symbol of the current lattice
+        """
+        latt_type = latt_type.upper()
+        if latt_type == 'A':
+            self.lattice_vect = np.dot(np.transpose(self.lattice_vect), Pa).T
+            self.cell = self.lattice_to_cell(self.lattice_vect)
 
     def lengths(self, matrix):
         if not isinstance(matrix, np.ndarray):
@@ -73,22 +110,12 @@ class Lattice():
         Does a niggli reduction, G6 vector and distance calculation from two given unit cells.
         TODO: transform to primitive lattices
         """
-        reduced1 = self.lattice_to_cell(spglib.niggli_reduce(self.lattice_from_parameters(self.cell)))
+        reduced1 = self.lattice_to_cell(spglib.niggli_reduce(self.lattice_vect))
         G6a = self.cell_to_g6(reduced1)
         reduced2 = self.lattice_to_cell(spglib.niggli_reduce(self.lattice_from_parameters(*cell2)))
         G6b = self.cell_to_g6(reduced2)
         return 0.01 * sqrt(ncdist.ncdist(G6a, G6b))
 
-
-Pc = np.array([[1, 1, 0],
-               [-1, 1, 0],
-               [0, 0, 1.]])
-Pr = np.array([[2. / 3., -1. / 3.0, -1 / 3.],
-               [1 / 3, 1 / 3, -2 / 3],
-               [1 / 3, 1 / 3, 1 / 3]])
-Pa = np.array([[1, 0, 0], 
-               [0, 0.5, -0.5], 
-               [0, 0.5, 0.5]])
 
 if __name__ == '__main__':
     c1 = [5.2601, 9.1644, 10.6090, 104.851, 104.324, 100.457]
@@ -112,7 +139,8 @@ if __name__ == '__main__':
     c12 = [10., 10., 10., 112., 112.5, 112.9]  # G6: (100, 100, 100, -74.9, -76.5, -77.8)
     # reduced cell:
     c13 = [8.41, 10.0, 10.0, 112, 106.3, 106.8]  # reduced G6: (70.7, 100, 100,-74.9,-47-3,-48.5)
-
+    
+    lat1 = Lattice(*c12)
     reduced = lattice_to_cell(spglib.niggli_reduce(lattice_from_parameters(*c12)))
     print('g6 of 12:', cell_to_g6(c12))
     print('reduced:', reduced)
