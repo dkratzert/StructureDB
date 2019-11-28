@@ -26,10 +26,11 @@ from sqlite3 import DatabaseError, ProgrammingError, OperationalError
 from PyQt5.QtCore import QModelIndex, pyqtSlot, QUrl, QDate, QEvent, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkAccessManager
-from PyQt5.QtWidgets import QApplication, QFileDialog, QDialog, QProgressBar, QPushButton, QTreeWidgetItem, QMainWindow, \
+from PyQt5.QtWidgets import QApplication, QFileDialog, QDialog, QProgressBar, QTreeWidgetItem, QMainWindow, \
     QMessageBox
 from math import sin, radians
 
+from cellcomp.compare import Lattice
 from displaymol.sdm import SDM
 from p4pfile.p4p_reader import P4PFile, read_file_to_list
 from shelxfile.shelx import ShelXFile
@@ -40,7 +41,6 @@ DEBUG = False
 from apex import apeximporter
 from displaymol import mol_file_writer, write_html
 from misc.version import VERSION
-from pymatgen.core import lattice
 from searcher import constants, misc, filecrawler, database_handler
 from searcher.constants import centering_num_2_letter, centering_letter_2_num
 from searcher.fileparser import Cif
@@ -967,16 +967,12 @@ class StartStructureDB(QMainWindow):
         # Real lattice comparing in G6:
         idlist = []
         if cells:
-            lattice1 = lattice.Lattice.from_parameters(*cell)
+            lattice1 = Lattice.from_parameters(cell, 'P')
             self.statusBar().clearMessage()
             for num, curr_cell in enumerate(cells):
                 self.progressbar(num, 0, len(cells) - 1)
-                try:
-                    lattice2 = lattice.Lattice.from_parameters(*curr_cell[1:7])
-                except ValueError:
-                    continue
-                mapping = lattice1.find_mapping(lattice2, ltol, atol, skip_rotation_matrix=True)
-                if mapping:
+                mapping = lattice1.match_cell(curr_cell[1:7], 'P')
+                if mapping > 0:
                     idlist.append(curr_cell[0])
         # print("After match: ", len(idlist), sorted(idlist))
         return idlist

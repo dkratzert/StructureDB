@@ -162,6 +162,13 @@ class Lattice():
         dist = dist * (1 / sqrt(6))
         return 0.1 * sqrt(dist)
 
+    def match_cell(self, cell2: List[Union[float, int]], unitcell_type: str) -> Union[int, float]:
+        dist = self.ncdist_fromcell(cell2, unitcell_type)
+        if dist < 0.25:
+            return dist
+        else:
+            return 0
+
 
 if __name__ == '__main__':
     c1 = [5.2601, 9.1644, 10.6090, 104.851, 104.324, 100.457]
@@ -198,3 +205,10 @@ if __name__ == '__main__':
     dist = lat.ncdist_fromcell(c8, 'c')
     print(dist, '1GUT')
 
+    lat = Lattice.from_parameters(c1, 'p')
+    dist = lat.ncdist_fromcell(c2, 'p')
+    print(dist, 'wp')
+
+    lat = Lattice.from_parameters(c3a, 'p')
+    dist = lat.ncdist_fromcell(c4a, 'p')
+    print(dist, 'wp2')
