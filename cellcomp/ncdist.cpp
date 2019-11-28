@@ -1,8 +1,11 @@
 /*cppimport
 <%
+cfg['compiler_args'] = ['-std=c++11', '-fopenmp']
+cfg['linker_args'] = ['-fopenmp']
 setup_pybind11(cfg)
 %>
 */
+#include <omp.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <NCDist.h>

@@ -1,7 +1,8 @@
 from math import pi, cos, sqrt, radians
-from typing import List, Union, Iterable
+from typing import List, Union
 
 import numpy as np
+from numpy.core.multiarray import ndarray
 from spglib import spglib
 
 # noinspection PyUnresolvedReferences
@@ -35,8 +36,8 @@ Pf = np.array([[0, 0.5, 0.5],
                [0.5, 0, 0.5],
                [0.5, 0.5, 0]])
 
-unitcell_type = Iterable[float]
-lattice_vect_type = List[float]
+unitcell_type = List[float]
+lattice_vect_type = List[Union[List[float], ndarray]]
 
 
 class Lattice():
@@ -47,7 +48,20 @@ class Lattice():
         :param latt_type: Lattice type symbol of the current lattice
         """
         self.lattice_type = latt_type
-        self.lattice_vect = np.array(lattice_vect, dtype=np.float64).setflags(write=False)
+        self.lattice_vect = np.array(lattice_vect, dtype=np.float64).reshape((3, 3))
+        self.lattice_vect.setflags(write=False)
+
+    def __repr__(self):
+        return str(self.lattice_vect)
+
+    def copy(self) -> 'Lattice':
+        """Deep copy of self."""
+        return Lattice(self.lattice_vect.copy(), self.lattice_type)
+
+    @property
+    def matrix(self) -> np.ndarray:
+        """Copy of matrix representing the Lattice"""
+        return self.lattice_vect
 
     @classmethod
     def from_parameters(cls, a: float, b: float, c: float, alpha: float, beta: float, gamma: float,
@@ -74,53 +88,53 @@ class Lattice():
         """
         return Lattice(spglib.niggli_reduce(self.lattice_vect), self.lattice_type)
 
-    def to_primitive_lattice(self) -> lattice_vect_type:
+    @property
+    def primitive_lattice(self) -> 'Lattice':
         """
         Transforms the lattice to a primitive lattice.
         """
         if self.lattice_type == 'A':
-            return np.dot(np.transpose(self.lattice_vect), Pa).T
+            return Lattice(np.dot(np.transpose(self.lattice_vect), Pa).T, 'P')
         elif self.lattice_type == 'C':
-            return np.dot(np.transpose(self.lattice_vect), Pc).T
+            return Lattice(np.dot(np.transpose(self.lattice_vect), Pc).T, 'P')
         elif self.lattice_type == 'R':
-            return np.dot(np.transpose(self.lattice_vect), Pc).T
+            return Lattice(np.dot(np.transpose(self.lattice_vect), Pr).T, 'P')
         elif self.lattice_type == 'I':
-            return np.dot(np.transpose(self.lattice_vect), Pc).T
+            return Lattice(np.dot(np.transpose(self.lattice_vect), Pi).T, 'P')
         elif self.lattice_type == 'F':
-            return np.dot(np.transpose(self.lattice_vect), Pc).T
+            return Lattice(np.dot(np.transpose(self.lattice_vect), Pf).T, 'P')
         else:
-            return self.lattice_vect
+            return self#.copy()
 
-    @staticmethod
-    def lengths(matrix: lattice_vect_type) -> List[float]:
+    def lengths(self) -> List[float]:
         """
         The a, b, c parameters of the unit cell.
         :param matrix: The lattice vector matrix.
         :return: A list with a, b, c
         """
-        if not isinstance(matrix, np.ndarray):
-            matrix = np.ndarray(matrix, dtype=float)
-        return np.sqrt(np.sum(matrix ** 2, axis=1)).tolist()
+        return np.sqrt(np.sum(self.lattice_vect ** 2, axis=1)).tolist()
 
-    def angles(self, matrix: List[List[float]]) -> List[float]:
+    def angles(self) -> List[float]:
         """
         Returns the angles (alpha, beta, gamma) of the lattice.
         """
-        lengt = self.lengths(matrix)
+        lengt = self.lengths()
         angles = np.zeros(3)
         for i in range(3):
             j = (i + 1) % 3
             k = (i + 2) % 3
-            angles[i] = abs_cap(np.dot(matrix[j], matrix[k]) / (lengt[j] * lengt[k]))
+            angles[i] = abs_cap(np.dot(self.lattice_vect[j], self.lattice_vect[k]) / (lengt[j] * lengt[k]))
         angles = np.arccos(angles) * 180.0 / pi
         return angles.tolist()
 
-    def lattice_to_cell(self, lattice: lattice_vect_type) -> unitcell_type:
-        return self.lengths(lattice) + self.angles(lattice)
+    @property
+    def unit_cell(self) -> unitcell_type:
+        return self.lengths() + self.angles()
 
-    @staticmethod
-    def cell_to_g6(uc: unitcell_type) -> unitcell_type:
+    @property
+    def G6(self):
         """ Take a reduced Niggli Cell, and turn it into the G6 representation """
+        uc = self.unit_cell
         a = uc[0] ** 2
         b = uc[1] ** 2
         c = uc[2] ** 2
@@ -129,16 +143,14 @@ class Lattice():
         f = 2 * uc[0] * uc[1] * cos(radians(uc[5]))
         return [a, b, c, d, e, f]
 
-    def ncdist_fromcell(self, cell2: unitcell_type) -> float:
+    def ncdist_fromcell(self, cell2: List[float], unitcell_type: str) -> float:
         """
         Does a niggli reduction, G6 vector and distance calculation from two given unit cells.
         TODO: transform to primitive lattices
         """
-        reduced1 = self.niggli_reduced
-        G6a = self.cell_to_g6(reduced1.to_primitive_lattice())
-        reduced2 = Lattice.from_parameters(*cell2)
-        G6b = self.cell_to_g6(reduced2.to_primitive_lattice())
-        return 0.01 * sqrt(ncdist.ncdist(G6a, G6b))
+        # cell->lattice_vec->make_primitive->niggli_reduce->to_g6->ncdist_from_g6
+        l2 = Lattice.from_parameters(*cell2, latt_type=unitcell_type).primitive_lattice.niggli_reduced.G6
+        return 0.1 * sqrt(ncdist.ncdist(self.primitive_lattice.niggli_reduced.G6, l2))
 
 
 if __name__ == '__main__':
@@ -184,4 +196,12 @@ if __name__ == '__main__':
     # print(np.dot(np.transpose(lattice), Pc).T)
     reduced = spglib.niggli_reduce(lattice_from_parameters(*c6))
     print(lattice_to_cell(np.dot(np.transpose(reduced), Pr).T)) 
+
+    cell->lattice_vec->make_primitive->niggli_reduce->to_g6->ncdist_from_g6
+    reduced1 = self.lattice_to_cell(spglib.niggli_reduce(self.lattice_from_parameters(self.cell)))
+    G6a = self.cell_to_g6(reduced1)
+    reduced2 = self.lattice_to_cell(spglib.niggli_reduce(self.lattice_from_parameters(*cell2)))
+    G6b = self.cell_to_g6(reduced2)
+    return 0.01 * sqrt(ncdist.ncdist(G6a, G6b))
+    
     """

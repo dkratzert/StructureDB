@@ -76,3 +76,4 @@ venv/
 test2.sqlite
 test3.sqlite
 
+cellcomp/ncdist.cp37-win_amd64.pyd
