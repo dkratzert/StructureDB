@@ -152,6 +152,10 @@ class Lattice():
         Does a niggli reduction, G6 vector and distance calculation from two given unit cells.
         :param cell2: Second unit cell to compare self to
         :param unitcell_type: Lattice centering type of the unit cell, e.g. P, R, or I
+
+        The square root of the BGAOL Niggli cone embedding distance NCDist based on
+        [a2, b2, c2, 2bccos(α), 2accos(β), 2abcos(γ)] with the distances scaled by 1/√6 and divided by the 
+        reciprocal of the average length of cell edges f. The square root linearizes the metric to˚Angstrom units.
         """
         # cell->lattice_vec->make_primitive->niggli_reduce->to_g6->ncdist_from_g6
         primlatt = Lattice.from_parameters(*cell2, latt_type=unitcell_type).primitive_lattice
