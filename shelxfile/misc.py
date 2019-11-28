@@ -244,7 +244,11 @@ def time_this_method(f):
         t1 = time.perf_counter()
         result = f(*args, **kwargs)
         t2 = time.perf_counter()
-        print('Time for "{}": {:5.3} ms\n'.format(f.__name__ + '()', (t2 - t1) * 1000))
+        diff = t2 - t1
+        if diff > 0.5:
+            print('Time for "{}()": {:5.3f} s\n'.format(f.__name__, diff))
+        else:
+            print('Time for "{}()": {:5.3f} ms\n'.format(f.__name__, diff * 1000))
         return result
     return wrapper
 

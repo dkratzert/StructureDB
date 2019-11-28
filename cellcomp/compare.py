@@ -7,7 +7,6 @@ from spglib import spglib
 
 # noinspection PyUnresolvedReferences
 from cellcomp import ncdist
-from shelxfile.misc import time_this_method
 
 
 def abs_cap(val, max_abs_val=1):
@@ -65,11 +64,11 @@ class Lattice():
         return self.lattice_vect
 
     @classmethod
-    def from_parameters(cls, a: float, b: float, c: float, alpha: float, beta: float, gamma: float,
-                        latt_type: str = 'P') -> 'Lattice':
+    def from_parameters(cls, cell: List[Union[float, int]], latt_type: str = 'P') -> 'Lattice':
         """
         Create a Lattice using unit cell lengths and angles (in degrees).
         """
+        a, b, c, alpha, beta, gamma = cell
         angles_r = np.radians([alpha, beta, gamma])
         cos_alpha, cos_beta, cos_gamma = np.cos(angles_r)
         sin_alpha, sin_beta, sin_gamma = np.sin(angles_r)
@@ -112,7 +111,6 @@ class Lattice():
     def lengths(self) -> List[float]:
         """
         The a, b, c parameters of the unit cell.
-        :param matrix: The lattice vector matrix.
         :return: A list with a, b, c
         """
         return np.sqrt(np.sum(self.lattice_vect ** 2, axis=1)).tolist()
@@ -125,7 +123,7 @@ class Lattice():
         for i in range(3):
             j = (i + 1) % 3
             k = (i + 2) % 3
-            angles[i] = abs_cap(np.dot(self.lattice_vect[j], self.lattice_vect[k]) / 
+            angles[i] = abs_cap(np.dot(self.lattice_vect[j], self.lattice_vect[k]) /
                                 (self.lengths()[j] * self.lengths()[k]))
         angles = np.arccos(angles) * 180.0 / pi
         return angles.tolist()
@@ -146,8 +144,8 @@ class Lattice():
         f = 2 * uc[0] * uc[1] * cos(radians(uc[5]))
         return [a, b, c, d, e, f]
 
-    #@time_this_method
-    def ncdist_fromcell(self, cell2: List[float], unitcell_type: str) -> float:
+    # @time_this_method
+    def ncdist_fromcell(self, cell2: List[Union[float, int]], unitcell_type: str) -> float:
         """
         Does a niggli reduction, G6 vector and distance calculation from two given unit cells.
         :param cell2: Second unit cell to compare self to
@@ -155,11 +153,14 @@ class Lattice():
 
         The square root of the BGAOL Niggli cone embedding distance NCDist based on
         [a2, b2, c2, 2bccos(α), 2accos(β), 2abcos(γ)] with the distances scaled by 1/√6 and divided by the 
-        reciprocal of the average length of cell edges f. The square root linearizes the metric to˚Angstrom units.
+        reciprocal of the average length of cell edges f. The square root linearizes the metric to Angstrom units.
         """
         # cell->lattice_vec->make_primitive->niggli_reduce->to_g6->ncdist_from_g6
-        primlatt = Lattice.from_parameters(*cell2, latt_type=unitcell_type).primitive_lattice
-        return 0.1 * sqrt(ncdist.ncdist(self.primitive_lattice.niggli_reduced.G6, primlatt.niggli_reduced.G6))
+        primlatt = Lattice.from_parameters(cell2, latt_type=unitcell_type).primitive_lattice
+        dist = ncdist.ncdist(self.primitive_lattice.niggli_reduced.G6, primlatt.niggli_reduced.G6)
+        # Is this really correct?
+        dist = dist * (1 / sqrt(6))
+        return 0.1 * sqrt(dist)
 
 
 if __name__ == '__main__':
@@ -170,13 +171,13 @@ if __name__ == '__main__':
     c3a = [float(x) for x in "7.5675 13.1966 11.3486   90.000  103.608   90.000 ".split()]
     c4a = [float(x) for x in "7.6870 13.2020 11.5790   90.000  105.840   90.000 ".split()]
 
-    c5 = [57.98, 57.98, 57.98, 92.02, 92.02, 92.02]  # R32  1FE5
+    c5 = [57.98, 57.98, 57.98, 92.02, 92.02, 92.02]  # R32  1FE5 3.3
     c6 = [80.36, 80.36, 99.44, 90.0, 90.0, 120.0]  # R3   1U4J, primitive= 57.02, 57.02, 57.02, 89.605, 89.605, 89.605
-    c7 = [80.949, 80.572, 57.098, 90.0, 90.35, 90.0]  # C2  1G2X
-    c6x = [77.516, 90.00, 77.516, 90.00, 99.076, 120.00]  # H3  2WCE
-    c6y = [80.360, 90.00, 80.360, 90.00, 99.440, 120.00] # H 1G0Z 
+    c7 = [80.949, 80.572, 57.098, 90.0, 90.35, 90.0]  # C2  1G2X 0.9
+    c6x = [77.516, 77.516, 99.076, 90.00, 90.00, 120.00]  # H3  2WCE 3
+    c6y = [80.360, 80.360, 99.440, 90.00, 90.00, 120.00]  # H 1G0Z 0
     #
-    c8 = [78.961, 82.328, 57.031, 90.00, 93.44, 90.00]
+    c8 = [78.961, 82.328, 57.031, 90.00, 93.44, 90.00] # C2  1GUT
     c9 = [80.36, 80.36, 99.44, 90, 90, 120]
     #
     c10 = [3.1457, 3.1457, 3.1451, 60.089, 60.0887, 60.104]
@@ -187,32 +188,13 @@ if __name__ == '__main__':
     # reduced cell:
     c13 = [8.41, 10.0, 10.0, 112, 106.3, 106.8]  # reduced G6: (70.7, 100, 100,-74.9,-47-3,-48.5)
 
-    lat = Lattice(c5)
-    dist = lat.ncdist_fromcell(c6)
-    print(dist)
-    """
-    lat1 = Lattice(*c12)
-    reduced = lattice_to_cell(spglib.niggli_reduce(lattice_from_parameters(*c12)))
-    print('g6 of 12:', cell_to_g6(c12))
-    print('reduced:', reduced)
-    G6a = cell_to_g6(reduced)
-    print('reduced g6 of 12:', G6a)
+    lat = Lattice.from_parameters(c6, 'R')
+    dist = lat.ncdist_fromcell(c6y, 'h')
+    print(dist, '1G0Z')
+    dist = lat.ncdist_fromcell(c7, 'C')
+    print(dist, '1G2X')
+    dist = lat.ncdist_fromcell(c6x, 'h')
+    print(dist, '2WCE')
+    dist = lat.ncdist_fromcell(c8, 'c')
+    print(dist, '1GUT')
 
-    print(ncdist_fromcell(c1, c2))
-    print(ncdist_fromcell(c3a, c4a))
-    print(ncdist_fromcell(c3, c4))
-    print('c5:')
-    print(ncdist_fromcell(c6, c5))
-    print(ncdist_fromcell(c5, c7))
-    # print(np.dot(np.transpose(lattice), Pc).T)
-    reduced = spglib.niggli_reduce(lattice_from_parameters(*c6))
-    print(lattice_to_cell(np.dot(np.transpose(reduced), Pr).T)) 
-
-    cell->lattice_vec->make_primitive->niggli_reduce->to_g6->ncdist_from_g6
-    reduced1 = self.lattice_to_cell(spglib.niggli_reduce(self.lattice_from_parameters(self.cell)))
-    G6a = self.cell_to_g6(reduced1)
-    reduced2 = self.lattice_to_cell(spglib.niggli_reduce(self.lattice_from_parameters(*cell2)))
-    G6b = self.cell_to_g6(reduced2)
-    return 0.01 * sqrt(ncdist.ncdist(G6a, G6b))
-    
-    """
