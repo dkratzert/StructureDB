@@ -7,6 +7,7 @@ from spglib import spglib
 
 # noinspection PyUnresolvedReferences
 from cellcomp import ncdist
+from shelxfile.misc import time_this_method
 
 
 def abs_cap(val, max_abs_val=1):
@@ -20,21 +21,21 @@ def abs_cap(val, max_abs_val=1):
 
 # Transformation matrix from the standardized unit cell to the primitive cell:
 """https://atztogo.github.io/spglib/definition.html#transformation-to-a-primitive-cell"""
-Pa = np.array([[1, 0, 0],
-               [0, 0.5, -0.5],
-               [0, 0.5, 0.5]])
+Pa = np.array([[1., 0., 0.],
+               [0., 0.5, -0.5],
+               [0.0, 0.5, 0.5]])
 Pc = np.array([[0.5, 0.5, 0],
                [-0.5, 0.5, 0],
-               [0, 0, 1.]])
-Pr = np.array([[2. / 3., -1. / 3., -1 / 3.],
-               [1 / 3., 1 / 3., -2 / 3.],
-               [1 / 3., 1 / 3., 1 / 3.]])
+               [0, 0, 1.0]])
+Pr = np.array([[2.0 / 3.0, -1. / 3.0, -1.0 / 3.0],
+               [1.0 / 3.0, 1.0 / 3.0, -2.0 / 3.0],
+               [1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0]])
 Pi = np.array([[-0.5, 0.5, 0.5],
                [0.5, -0.5, 0.5],
                [0.5, 0.5, -0.5]])
-Pf = np.array([[0, 0.5, 0.5],
-               [0.5, 0, 0.5],
-               [0.5, 0.5, 0]])
+Pf = np.array([[0.0, 0.5, 0.5],
+               [0.5, 0.0, 0.5],
+               [0.5, 0.5, 0.0]])
 
 unitcell_type = List[float]
 lattice_vect_type = List[Union[List[float], ndarray]]
@@ -47,7 +48,7 @@ class Lattice():
         :param lattice_vect: The lattice vectors [[a], [b], [c]]
         :param latt_type: Lattice type symbol of the current lattice
         """
-        self.lattice_type = latt_type
+        self.lattice_type = latt_type.upper()
         self.lattice_vect = np.array(lattice_vect, dtype=np.float64).reshape((3, 3))
         self.lattice_vect.setflags(write=False)
 
@@ -99,12 +100,14 @@ class Lattice():
             return Lattice(np.dot(np.transpose(self.lattice_vect), Pc).T, 'P')
         elif self.lattice_type == 'R':
             return Lattice(np.dot(np.transpose(self.lattice_vect), Pr).T, 'P')
+        elif self.lattice_type == 'H':
+            return Lattice(np.dot(np.transpose(self.lattice_vect), Pr).T, 'P')
         elif self.lattice_type == 'I':
             return Lattice(np.dot(np.transpose(self.lattice_vect), Pi).T, 'P')
         elif self.lattice_type == 'F':
             return Lattice(np.dot(np.transpose(self.lattice_vect), Pf).T, 'P')
         else:
-            return self#.copy()
+            return self.copy()
 
     def lengths(self) -> List[float]:
         """
@@ -118,12 +121,12 @@ class Lattice():
         """
         Returns the angles (alpha, beta, gamma) of the lattice.
         """
-        lengt = self.lengths()
         angles = np.zeros(3)
         for i in range(3):
             j = (i + 1) % 3
             k = (i + 2) % 3
-            angles[i] = abs_cap(np.dot(self.lattice_vect[j], self.lattice_vect[k]) / (lengt[j] * lengt[k]))
+            angles[i] = abs_cap(np.dot(self.lattice_vect[j], self.lattice_vect[k]) / 
+                                (self.lengths()[j] * self.lengths()[k]))
         angles = np.arccos(angles) * 180.0 / pi
         return angles.tolist()
 
@@ -132,7 +135,7 @@ class Lattice():
         return self.lengths() + self.angles()
 
     @property
-    def G6(self):
+    def G6(self) -> List[float]:
         """ Take a reduced Niggli Cell, and turn it into the G6 representation """
         uc = self.unit_cell
         a = uc[0] ** 2
@@ -143,14 +146,16 @@ class Lattice():
         f = 2 * uc[0] * uc[1] * cos(radians(uc[5]))
         return [a, b, c, d, e, f]
 
+    #@time_this_method
     def ncdist_fromcell(self, cell2: List[float], unitcell_type: str) -> float:
         """
         Does a niggli reduction, G6 vector and distance calculation from two given unit cells.
-        TODO: transform to primitive lattices
+        :param cell2: Second unit cell to compare self to
+        :param unitcell_type: Lattice centering type of the unit cell, e.g. P, R, or I
         """
         # cell->lattice_vec->make_primitive->niggli_reduce->to_g6->ncdist_from_g6
-        l2 = Lattice.from_parameters(*cell2, latt_type=unitcell_type).primitive_lattice.niggli_reduced.G6
-        return 0.1 * sqrt(ncdist.ncdist(self.primitive_lattice.niggli_reduced.G6, l2))
+        primlatt = Lattice.from_parameters(*cell2, latt_type=unitcell_type).primitive_lattice
+        return 0.1 * sqrt(ncdist.ncdist(self.primitive_lattice.niggli_reduced.G6, primlatt.niggli_reduced.G6))
 
 
 if __name__ == '__main__':
@@ -162,8 +167,10 @@ if __name__ == '__main__':
     c4a = [float(x) for x in "7.6870 13.2020 11.5790   90.000  105.840   90.000 ".split()]
 
     c5 = [57.98, 57.98, 57.98, 92.02, 92.02, 92.02]  # R32  1FE5
-    c6 = [80.36, 80.36, 99.44, 90, 90, 120]  # R3   1U4J, primitive= 57.02, 57.02, 57.02, 89.605, 89.605, 89.605
+    c6 = [80.36, 80.36, 99.44, 90.0, 90.0, 120.0]  # R3   1U4J, primitive= 57.02, 57.02, 57.02, 89.605, 89.605, 89.605
     c7 = [80.949, 80.572, 57.098, 90.0, 90.35, 90.0]  # C2  1G2X
+    c6x = [77.516, 90.00, 77.516, 90.00, 99.076, 120.00]  # H3  2WCE
+    c6y = [80.360, 90.00, 80.360, 90.00, 99.440, 120.00] # H 1G0Z 
     #
     c8 = [78.961, 82.328, 57.031, 90.00, 93.44, 90.00]
     c9 = [80.36, 80.36, 99.44, 90, 90, 120]

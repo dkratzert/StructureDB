@@ -237,19 +237,15 @@ def time_this_method(f):
     """
     Rather promitive way of timing a method. More advanced would be the profilehooks module.
     """
-    if PROFILE:
-        from functools import wraps
+    from functools import wraps
 
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            t1 = time.clock()
-            result = f(*args, **kwargs)
-            t2 = time.clock()
-            if PROFILE:
-                print('Time for "{}": {:5.3} ms\n'.format(f.__name__ + '()', (t2 - t1) * 1000))
-            return result
-    else:
-        wrapper = f
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        t1 = time.perf_counter()
+        result = f(*args, **kwargs)
+        t2 = time.perf_counter()
+        print('Time for "{}": {:5.3} ms\n'.format(f.__name__ + '()', (t2 - t1) * 1000))
+        return result
     return wrapper
 
 
