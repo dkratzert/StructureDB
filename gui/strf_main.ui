@@ -1141,7 +1141,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="CeneringSearchComboBox">
+             <widget class="QComboBox" name="CenteringSearchComboBox">
               <property name="maximumSize">
                <size>
                 <width>50</width>

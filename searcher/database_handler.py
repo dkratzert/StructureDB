@@ -834,7 +834,11 @@ class StructureTable():
         """
         upper_limit = float(volume + volume * threshold)
         lower_limit = float(volume - volume * threshold)
-        req = '''SELECT StructureId, a, b, c, alpha, beta, gamma, volume FROM cell WHERE cell.volume >= ? AND cell.volume <= ?'''
+        req = '''SELECT cell.StructureId, cell.a, cell.b, cell.c, cell.alpha, cell.beta, cell.gamma, cell.volume, res._space_group_centring_type 
+                FROM cell 
+                INNER JOIN Residuals as res ON cell.StructureId = res.StructureId
+                AND cell.volume >= ? AND cell.volume <= ?  
+                 '''
         try:
             return self.database.db_request(req, (lower_limit, upper_limit))
         except(TypeError, KeyError):

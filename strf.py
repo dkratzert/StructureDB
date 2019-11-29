@@ -968,12 +968,14 @@ class StartStructureDB(QMainWindow):
         # Real lattice comparing in G6:
         idlist = []
         if cells:
-            lattice1 = Lattice.from_parameters(cell, 'P')
+            lattice1 = Lattice.from_parameters(cell, self.ui.CenteringSearchComboBox.currentText())
             self.statusBar().clearMessage()
             for num, curr_cell in enumerate(cells):
+                ccell, latt = curr_cell[1:7], curr_cell[8]
+                if not latt in ('P', 'I', 'A', 'B', 'C', 'F', 'R', 'H'):
+                    latt = 'P'
                 self.progressbar(num, 0, len(cells) - 1)
-                ccell = curr_cell[1:7]
-                match = lattice1.match_cell(ccell, 'P')
+                match = lattice1.match_cell(ccell, latt)
                 if match > -1:
                     idlist.append(curr_cell[0])
         # print("After match: ", len(idlist), sorted(idlist))
