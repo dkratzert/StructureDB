@@ -179,7 +179,7 @@ class Lattice():
         if dist < 0.2:
             return dist
         else:
-            return 0
+            return -1
 
 
 if __name__ == '__main__':
@@ -229,8 +229,8 @@ if __name__ == '__main__':
     dist = lat.ncdist_fromcell([7.3518 ,  18.6898,   25.8702 ,  90.0000  , 90.0000 ,  90.0000], 'p')
     print(dist, 'test')
 
-    lat = Lattice.from_parameters([7.3518 ,  18.6898,   25.8702 ,  90.0000  , 90.0000 ,  90.0000], 'p')
-    dist = lat.ncdist_fromcell([18.7334, 25.9327, 7.3674, 90.000, 90.000, 90.000], 'p')
+    lat = Lattice.from_parameters((18.733, 25.933, 7.3674, 90.0, 90.0, 90.0), 'p')
+    dist = lat.ncdist_fromcell((18.7334, 25.9327, 7.3674, 90.0, 90.0, 90.0), 'p')
     print(dist, 'test')
 
     @time_this_method

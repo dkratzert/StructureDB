@@ -946,13 +946,14 @@ class StartStructureDB(QMainWindow):
                 atol = 1.8
             else:
                 # regular:
-                vol_threshold = 0.02
+                vol_threshold = 0.005
                 ltol = 0.03
                 atol = 1.0
         try:
             volume = misc.vol_unitcell(*cell)
             # the fist number in the result is the structureid:
             cells = self.structures.find_by_volume(volume, vol_threshold)
+            print(len(cells), 'cells to check at {}% theshold.'.format(vol_threshold*100))
             if self.ui.sublattCheckbox.isChecked() or self.ui.adv_superlatticeCheckBox.isChecked():
                 # sub- and superlattices:
                 for v in [volume * x for x in [2.0, 3.0, 4.0, 6.0, 8.0, 10.0]]:
@@ -972,8 +973,8 @@ class StartStructureDB(QMainWindow):
             for num, curr_cell in enumerate(cells):
                 self.progressbar(num, 0, len(cells) - 1)
                 ccell = curr_cell[1:7]
-                mapping = lattice1.match_cell(ccell, 'P')
-                if mapping > 0:
+                match = lattice1.match_cell(ccell, 'P')
+                if match > -1:
                     idlist.append(curr_cell[0])
         # print("After match: ", len(idlist), sorted(idlist))
         return idlist
