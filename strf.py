@@ -971,7 +971,10 @@ class StartStructureDB(QMainWindow):
             self.statusBar().clearMessage()
             for num, curr_cell in enumerate(cells):
                 self.progressbar(num, 0, len(cells) - 1)
-                mapping = lattice1.match_cell(curr_cell[1:7], 'P')
+                ccell = curr_cell[1:7]
+                if ccell[0] > 18.6 and ccell[0] < 18.9:
+                    print(ccell)    
+                mapping = lattice1.match_cell(ccell, 'P')
                 if mapping > 0:
                     idlist.append(curr_cell[0])
         # print("After match: ", len(idlist), sorted(idlist))
