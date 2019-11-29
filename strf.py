@@ -946,7 +946,7 @@ class StartStructureDB(QMainWindow):
                 atol = 1.8
             else:
                 # regular:
-                vol_threshold = 0.005
+                vol_threshold = 0.02
                 ltol = 0.03
                 atol = 1.0
         try:
