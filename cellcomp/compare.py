@@ -7,6 +7,7 @@ from spglib import spglib
 
 # noinspection PyUnresolvedReferences
 from cellcomp import ncdist
+from shelxfile.misc import time_this_method
 
 
 def abs_cap(val, max_abs_val=1):
@@ -22,19 +23,24 @@ def abs_cap(val, max_abs_val=1):
 """https://atztogo.github.io/spglib/definition.html#transformation-to-a-primitive-cell"""
 Pa = np.array([[1., 0., 0.],
                [0., 0.5, -0.5],
-               [0.0, 0.5, 0.5]])
+               [0.0, 0.5, 0.5]], dtype=np.float64)
+Pa.setflags(write=False)
 Pc = np.array([[0.5, 0.5, 0],
                [-0.5, 0.5, 0],
-               [0, 0, 1.0]])
+               [0, 0, 1.0]], dtype=np.float64)
+Pc.setflags(write=False)
 Pr = np.array([[2.0 / 3.0, -1. / 3.0, -1.0 / 3.0],
                [1.0 / 3.0, 1.0 / 3.0, -2.0 / 3.0],
-               [1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0]])
+               [1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0]], dtype=np.float64)
+Pr.setflags(write=False)
 Pi = np.array([[-0.5, 0.5, 0.5],
                [0.5, -0.5, 0.5],
-               [0.5, 0.5, -0.5]])
+               [0.5, 0.5, -0.5]], dtype=np.float64)
+Pi.setflags(write=False)
 Pf = np.array([[0.0, 0.5, 0.5],
                [0.5, 0.0, 0.5],
-               [0.5, 0.5, 0.0]])
+               [0.5, 0.5, 0.0]], dtype=np.float64)
+Pf.setflags(write=False)
 
 unitcell_type = List[float]
 lattice_vect_type = List[Union[List[float], ndarray]]
@@ -92,6 +98,12 @@ class Lattice():
     def primitive_lattice(self) -> 'Lattice':
         """
         Transforms the lattice to a primitive lattice.
+        >>> from cellcomp.compare import Lattice
+        >>> l = Lattice.from_parameters([1, 1, 1, 90,90,89], 'c')
+        >>> l.primitive_lattice
+        [[ 4.91273797e-01 -4.99923848e-01  0.00000000e+00]
+         [ 5.08726203e-01  4.99923848e-01  6.12323400e-17]
+         [ 0.00000000e+00  0.00000000e+00  1.00000000e+00]]
         """
         if self.lattice_type == 'A':
             return Lattice(np.dot(np.transpose(self.lattice_vect), Pa).T, 'P')
@@ -184,7 +196,7 @@ if __name__ == '__main__':
     c6x = [77.516, 77.516, 99.076, 90.00, 90.00, 120.00]  # H3  2WCE 3
     c6y = [80.360, 80.360, 99.440, 90.00, 90.00, 120.00]  # H 1G0Z 0
     #
-    c8 = [78.961, 82.328, 57.031, 90.00, 93.44, 90.00] # C2  1GUT
+    c8 = [78.961, 82.328, 57.031, 90.00, 93.44, 90.00]  # C2  1GUT
     c9 = [80.36, 80.36, 99.44, 90, 90, 120]
     #
     c10 = [3.1457, 3.1457, 3.1451, 60.089, 60.0887, 60.104]
@@ -212,3 +224,13 @@ if __name__ == '__main__':
     lat = Lattice.from_parameters(c3a, 'p')
     dist = lat.ncdist_fromcell(c4a, 'p')
     print(dist, 'wp2')
+
+
+    @time_this_method
+    def speed():
+        for _ in range(1900):
+            lat = Lattice.from_parameters(c3a, 'c')
+            dist = lat.ncdist_fromcell(c4a, 'c')
+
+
+    speed()
