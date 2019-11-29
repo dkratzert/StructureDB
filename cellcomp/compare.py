@@ -240,4 +240,4 @@ if __name__ == '__main__':
             dist = lat.ncdist_fromcell(c4a, 'c')
 
 
-    speed()
+    #speed()
