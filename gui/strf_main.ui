@@ -1100,7 +1100,7 @@
            </spacer>
           </item>
           <item row="0" column="0" colspan="7">
-           <layout class="QHBoxLayout" name="searchLayout" stretch="0,0,0,0,0,0,0">
+           <layout class="QHBoxLayout" name="searchLayout" stretch="0,0,0,0,0,0,0,0,0">
             <property name="sizeConstraint">
              <enum>QLayout::SetDefaultConstraint</enum>
             </property>
@@ -1131,6 +1131,63 @@
               <property name="placeholderText">
                <string>a b c alpha beta gamma</string>
               </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="centeringLabel">
+              <property name="text">
+               <string>Centering</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="CeneringSearchComboBox">
+              <property name="maximumSize">
+               <size>
+                <width>50</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <item>
+               <property name="text">
+                <string>P</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>A</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>B</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>C</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>F</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>I</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>R</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>H</string>
+               </property>
+              </item>
              </widget>
             </item>
             <item>
@@ -3033,14 +3090,14 @@ p, li { white-space: pre-wrap; }
             <attribute name="headerCascadingSectionResizes">
              <bool>false</bool>
             </attribute>
+            <attribute name="headerMinimumSectionSize">
+             <number>20</number>
+            </attribute>
             <attribute name="headerDefaultSectionSize">
              <number>60</number>
             </attribute>
             <attribute name="headerHighlightSections">
              <bool>false</bool>
-            </attribute>
-            <attribute name="headerMinimumSectionSize">
-             <number>20</number>
             </attribute>
             <attribute name="headerShowSortIndicator" stdset="0">
              <bool>false</bool>

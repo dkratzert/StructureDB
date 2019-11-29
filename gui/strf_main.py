@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './gui\strf_main.ui'
+# Form implementation generated from reading ui file 'D:\GitHub\StructureFinder\./gui\strf_main.ui'
 #
-# Created by: PyQt5 UI code generator 5.12.1
+# Created by: PyQt5 UI code generator 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
+
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -513,6 +514,21 @@ class Ui_stdbMainwindow(object):
         self.searchCellLineEDit.setSizePolicy(sizePolicy)
         self.searchCellLineEDit.setObjectName("searchCellLineEDit")
         self.searchLayout.addWidget(self.searchCellLineEDit)
+        self.centeringLabel = QtWidgets.QLabel(self.maintab)
+        self.centeringLabel.setObjectName("centeringLabel")
+        self.searchLayout.addWidget(self.centeringLabel)
+        self.CeneringSearchComboBox = QtWidgets.QComboBox(self.maintab)
+        self.CeneringSearchComboBox.setMaximumSize(QtCore.QSize(50, 16777215))
+        self.CeneringSearchComboBox.setObjectName("CeneringSearchComboBox")
+        self.CeneringSearchComboBox.addItem("")
+        self.CeneringSearchComboBox.addItem("")
+        self.CeneringSearchComboBox.addItem("")
+        self.CeneringSearchComboBox.addItem("")
+        self.CeneringSearchComboBox.addItem("")
+        self.CeneringSearchComboBox.addItem("")
+        self.CeneringSearchComboBox.addItem("")
+        self.CeneringSearchComboBox.addItem("")
+        self.searchLayout.addWidget(self.CeneringSearchComboBox)
         self.moreResultsCheckBox = QtWidgets.QCheckBox(self.maintab)
         self.moreResultsCheckBox.setObjectName("moreResultsCheckBox")
         self.searchLayout.addWidget(self.moreResultsCheckBox)
@@ -1196,6 +1212,15 @@ class Ui_stdbMainwindow(object):
         self.searchLabel.setText(_translate("stdbMainwindow", "Cell Search:"))
         self.searchCellLineEDit.setToolTip(_translate("stdbMainwindow", "<html><head/><body><p>Insert unit cell as space separated <br/>numbers: <span style=\" font-style:italic;\">a b c α β γ</span></p></body></html>"))
         self.searchCellLineEDit.setPlaceholderText(_translate("stdbMainwindow", "a b c alpha beta gamma"))
+        self.centeringLabel.setText(_translate("stdbMainwindow", "Centering"))
+        self.CeneringSearchComboBox.setItemText(0, _translate("stdbMainwindow", "P"))
+        self.CeneringSearchComboBox.setItemText(1, _translate("stdbMainwindow", "A"))
+        self.CeneringSearchComboBox.setItemText(2, _translate("stdbMainwindow", "B"))
+        self.CeneringSearchComboBox.setItemText(3, _translate("stdbMainwindow", "C"))
+        self.CeneringSearchComboBox.setItemText(4, _translate("stdbMainwindow", "F"))
+        self.CeneringSearchComboBox.setItemText(5, _translate("stdbMainwindow", "I"))
+        self.CeneringSearchComboBox.setItemText(6, _translate("stdbMainwindow", "R"))
+        self.CeneringSearchComboBox.setItemText(7, _translate("stdbMainwindow", "H"))
         self.moreResultsCheckBox.setToolTip(_translate("stdbMainwindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
@@ -1505,5 +1530,3 @@ class Ui_stdbMainwindow(object):
         self.actionCopy_Unit_Cell.setText(_translate("stdbMainwindow", "Copy Unit Cell"))
         self.actionGo_to_All_CIF_Tab.setText(_translate("stdbMainwindow", "Go to All CIF Tab"))
         self.actionGo_to_All_CIF_Tab.setShortcut(_translate("stdbMainwindow", "Meta+A"))
-
-
