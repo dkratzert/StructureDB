@@ -1,16 +1,15 @@
-# -*- mode: python -*-
+# -*- mode: python ; coding: utf-8 -*-
 
 block_cipher = None
-import os
 
 
 a = Analysis(['strf.py'],
-             pathex=[os.path.abspath(SPECPATH)],
-             binaries=[],
+             pathex=['D:\\Programme\\Windows Kits\\10\\Redist\\ucrt\\DLLs\\x64', 'D:\\GitHub\\StructureFinder'],
+             #binaries=[('C:\\tools\\opengl64\\opengl32sw.dll', 'opengl32sw.dll')],
              datas=[('gui', 'gui'), ('searcher', 'searcher'), ('shelxfile','shelxfile'), ('apex','apex'),
-                    ('displaymol', 'displaymol'), ('icons', 'icons'), ('p4pfile','p4pfile'),
+                    ('displaymol', 'displaymol'), ('icons', 'icons'), ('p4pfile','p4pfile'), 
                     ('ccdc','ccdc'), ('pg8000','pg8000'), ('misc', 'misc'), ('pymatgen', 'pymatgen')],
-             hiddenimports=['pg8000', 'decimal', 'six', 'uuid', 'distutils',
+             hiddenimports=['pg8000', 'decimal', 'six', 'uuid', 'distutils', 
                             'json', 'apex', 'distutils.version', 'misc', 'numpy'],
              hookspath=[],
              runtime_hooks=[],
@@ -33,12 +32,12 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=False ,
-          icon='icons\\strf.ico')
+          console=False , icon='icons\\strf.ico')
 #coll = COLLECT(exe,
 #               a.binaries,
 #               a.zipfiles,
 #               a.datas,
 #               strip=False,
 #               upx=True,
+#               upx_exclude=[],
 #               name='StructureFinder')

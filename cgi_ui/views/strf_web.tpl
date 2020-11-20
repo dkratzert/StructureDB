@@ -182,6 +182,7 @@
     </div>
 
     <!-- End of collapsible for search options. -->
+
     <div class="row">
         <div class="column col-12">
             <div id="mygrid" style="height: 450px"></div>

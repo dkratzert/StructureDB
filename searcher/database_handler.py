@@ -14,7 +14,7 @@ Created on 09.02.2015
 
 import sys
 from sqlite3 import OperationalError, ProgrammingError, connect, InterfaceError
-from typing import List, Union
+from typing import List, Union, Tuple
 
 from searcher.atoms import sorted_atoms
 
@@ -35,7 +35,14 @@ class DatabaseRequest():
         """
         # open the database
         self.con = connect(dbfile)
-        # self.con.execute("PRAGMA foreign_keys = ON")
+        self.con.execute("PRAGMA foreign_keys = ON")
+        ## These make requests faster: ###
+        self.con.execute("PRAGMA main.journal_mode = MEMORY;")
+        self.con.execute("PRAGMA temp.journal_mode = MEMORY;")
+        self.con.execute("PRAGMA main.cache_size = -20000;")
+        self.con.execute("PRAGMA recursive_triggers = 1;")
+        self.con.execute("PRAGMA main.synchronous = 0;")
+        self.con.execute("PRAGMA threads = 2;")
         # self.con.text_factory = str
         # self.con.text_factory = bytes
         with self.con:
@@ -185,7 +192,7 @@ class DatabaseRequest():
                 '''
         )
 
-        self.cur.execute(
+        """self.cur.execute(
                 '''
                 CREATE TABLE IF NOT EXISTS niggli_cell (
                             Id        INTEGER NOT NULL,
@@ -203,7 +210,7 @@ class DatabaseRequest():
                               ON DELETE CASCADE
                               ON UPDATE NO ACTION);
                 '''
-        )
+        )"""
 
         self.cur.execute(
                 '''
@@ -237,7 +244,7 @@ class DatabaseRequest():
                           """
                          )
 
-    def get_lastrowid(self):
+    def get_lastrowid(self) -> int:
         """
         Retrurns the last rowid of a loaded database.
 
@@ -245,10 +252,9 @@ class DatabaseRequest():
         >>> db.get_lastrowid()
         263
         """
-        lastid = self.db_fetchone("""SELECT max(id) FROM Structure""")
         try:
-            return lastid[0]
-        except TypeError:
+            return self.db_fetchone("""SELECT max(id) FROM Structure""")[0]
+        except (TypeError, IndexError):
             # No database or empty table:
             return 0
 
@@ -263,7 +269,7 @@ class DatabaseRequest():
         row = self.cur.fetchone()
         return row
 
-    def db_request(self, request, *args) -> (list, tuple):
+    def db_request(self, request, *args) -> Union[list, tuple, dict]:
         """
         Performs a SQLite3 database request with "request" and optional arguments
         to insert parameters via "?" into the database request.
@@ -304,7 +310,7 @@ class DatabaseRequest():
         # commit is very slow:
         try:
             self.con.commit()
-        except ProgrammingError:
+        except (AttributeError, ProgrammingError):
             pass
         try:
             self.con.close()
@@ -352,7 +358,7 @@ class StructureTable():
         if found:
             return found
 
-    def get_all_structures_as_dict(self, ids: (list, tuple) = None, all=False) -> list:
+    def get_all_structures_as_dict(self, ids: (list, tuple) = None, all=False) -> dict:
         """
         Returns the list of structures as dictionary.
 
@@ -700,6 +706,21 @@ class StructureTable():
     def make_indexes(self):
         """ Databse indexes for faster searching
         """
+        self.database.cur.execute("""DROP INDEX if exists idx_a""")
+        self.database.cur.execute("""DROP INDEX if exists idx_b""")
+        self.database.cur.execute("""DROP INDEX if exists idx_c""")
+        self.database.cur.execute("""DROP INDEX if exists idx_al""")
+        self.database.cur.execute("""DROP INDEX if exists idx_be""")
+        self.database.cur.execute("""DROP INDEX if exists idx_ga""")
+        #self.database.cur.execute("""DROP INDEX if exists idx_a_n""")
+        #self.database.cur.execute("""DROP INDEX if exists idx_b_n""")
+        #self.database.cur.execute("""DROP INDEX if exists idx_c_n""")
+        #self.database.cur.execute("""DROP INDEX if exists idx_al_n""")
+        #self.database.cur.execute("""DROP INDEX if exists idx_be_n""")
+        #self.database.cur.execute("""DROP INDEX if exists idx_ga_n""")
+        self.database.cur.execute("""DROP INDEX if exists idx_volume""")
+        #self.database.cur.execute("""DROP INDEX if exists idx_volume_n""")
+        self.database.cur.execute("""DROP INDEX if exists idx_sumform""")
         self.database.cur.execute("""CREATE INDEX idx_volume ON cell (volume)""")
         self.database.cur.execute("""CREATE INDEX idx_a ON cell (a)""")
         self.database.cur.execute("""CREATE INDEX idx_b ON cell (b)""")
@@ -707,13 +728,13 @@ class StructureTable():
         self.database.cur.execute("""CREATE INDEX idx_al ON cell (alpha)""")
         self.database.cur.execute("""CREATE INDEX idx_be ON cell (beta)""")
         self.database.cur.execute("""CREATE INDEX idx_ga ON cell (gamma)""")
-        self.database.cur.execute("""CREATE INDEX idx_volume_n ON niggli_cell (volume)""")
-        self.database.cur.execute("""CREATE INDEX idx_a_n ON niggli_cell (a)""")
-        self.database.cur.execute("""CREATE INDEX idx_b_n ON niggli_cell (b)""")
-        self.database.cur.execute("""CREATE INDEX idx_c_n ON niggli_cell (c)""")
-        self.database.cur.execute("""CREATE INDEX idx_al_n ON niggli_cell (alpha)""")
-        self.database.cur.execute("""CREATE INDEX idx_be_n ON niggli_cell (beta)""")
-        self.database.cur.execute("""CREATE INDEX idx_ga_n ON niggli_cell (gamma)""")
+        #self.database.cur.execute("""CREATE INDEX idx_volume_n ON niggli_cell (volume)""")
+        #self.database.cur.execute("""CREATE INDEX idx_a_n ON niggli_cell (a)""")
+        #self.database.cur.execute("""CREATE INDEX idx_b_n ON niggli_cell (b)""")
+        #self.database.cur.execute("""CREATE INDEX idx_c_n ON niggli_cell (c)""")
+        #self.database.cur.execute("""CREATE INDEX idx_al_n ON niggli_cell (alpha)""")
+        #self.database.cur.execute("""CREATE INDEX idx_be_n ON niggli_cell (beta)""")
+        #self.database.cur.execute("""CREATE INDEX idx_ga_n ON niggli_cell (gamma)""")
         self.database.cur.execute("""CREATE INDEX idx_sumform ON Residuals (_space_group_IT_number)""")
 
     def populate_fulltext_search_table(self):
@@ -818,13 +839,11 @@ class StructureTable():
         else:
             return cell
 
-    def find_by_volume(self, volume, threshold=0.03):
+    def find_by_volume(self, volume: float, threshold: float = 0.03) -> List:
         """
         Searches cells with volume between upper and lower limit. Returns the Id and the unit cell.
         :param threshold: Volume uncertaincy where to search
-        :type threshold: float
         :param volume: the unit cell volume
-        :type volume: float
         :return: list
         >>> db = StructureTable('./test-data/test.sql')
         >>> db.find_by_volume(3021.9, threshold=0.01)
@@ -877,6 +896,16 @@ class StructureTable():
         except(TypeError, KeyError):
             return ()
 
+    def find_by_ccdc_num(self, ccdc: str) -> list:
+        """
+        Find structures with respective CCDC number.
+        """
+        req = """
+        SELECT StructureId FROM Residuals WHERE _database_code_depnum_ccdc_archive LIKE ?
+        """
+        result = self.database.db_request(req, ('%'+ccdc+'%',))
+        return self.result_to_list(result)
+
     def find_by_strings(self, text):
         """
         Searches cells with volume between upper and lower limit
@@ -923,13 +952,13 @@ class StructureTable():
         result = self.database.db_request(req, (value,))
         return self.result_to_list(result)
 
-    def result_to_list(self, result):
+    def result_to_list(self, result: Union[List, Tuple])-> List:
         if result and len(result) > 0:
             return [x[0] for x in result]
         else:
             return []
 
-    def find_by_elements(self, elements: list, excluding: list = None, onlyincluded: bool = False) -> list:
+    def find_by_elements(self, elements: list, excluding: list = None, onlyincluded: bool = False) -> List[int]:
         """
         Find structures where certain elements are included in the sum formula.
 
@@ -966,7 +995,7 @@ class StructureTable():
         result = self.database.db_request(req)
         return self.result_to_list(result)
 
-    def find_by_date(self, start='0000-01-01', end='NOW'):
+    def find_by_date(self, start='0000-01-01', end='NOW')-> List:
         """
         Find structures between start and end date.
 
@@ -980,7 +1009,7 @@ class StructureTable():
         result = self.database.db_request(req, (start, end))
         return self.result_to_list(result)
 
-    def find_by_rvalue(self, rvalue: float):
+    def find_by_rvalue(self, rvalue: float) -> List:
         """
         Finds structures with R1 value better than rvalue. I search both R1 values, because often one or even both
         are missing.
@@ -1009,7 +1038,7 @@ class StructureTable():
         else:
             return False
 
-    def get_database_version(self):
+    def get_database_version(self) -> int:
         """
         >>> db = StructureTable('./test-data/test.sql')
         >>> db.get_database_version()
@@ -1019,15 +1048,15 @@ class StructureTable():
               SELECT Format FROM database_format;
               """
         try:
-            version = self.database.db_request(req)[0][0]
+            version: int = self.database.db_request(req)[0][0]
         except IndexError:
-            version = 0
+            version: int = 0
         return version
 
     def set_database_version(self, version=0):
         """
         Database version to indicate apex or other formats. A value of 1 means the data is from APEX.
-        >>> db = StructureTable('./test-data/test.sql')
+        >>> db = StructureTable('test-data/test.sql')
         >>> db.get_database_version()
         0
         """

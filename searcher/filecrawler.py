@@ -124,13 +124,13 @@ def filewalker_walk(startdir: str, patterns: list):
         for filen in files:
             omit = False
             if any(fnmatch.fnmatch(filen, pattern) for pattern in patterns):
-                fullpath = os.path.abspath(os.path.join(root, filen))
-                if os.stat(fullpath).st_size == 0:
-                    continue
                 for ex in excluded_names:
-                    if re.search(ex, fullpath, re.I):
+                    if re.search(ex, root, re.I):
                         omit = True
                 if omit:
+                    continue
+                fullpath = os.path.abspath(os.path.join(root, filen))
+                if os.stat(fullpath).st_size == 0:
                     continue
                 if filen == 'xd_geo.cif':  # Exclude xdgeom cif files
                     continue
@@ -195,8 +195,8 @@ def put_files_in_db(self=None, searchpath: str = './', excludes: list = None, la
                 except IndexError:
                     continue
                 if cif:  # means cif object has data inside (cif could be parsed)
-                    tst = fill_db_tables(cif, filename=name, path=filepth, structure_id=lastid,
-                                         structures=structures)
+                    tst = fill_db_with_cif_data(cif, filename=name, path=filepth, structure_id=lastid,
+                                                structures=structures)
                     if not tst:
                         continue
                     if self:
@@ -234,8 +234,8 @@ def put_files_in_db(self=None, searchpath: str = './', excludes: list = None, la
                 except IndexError:
                     continue
                 if cif:
-                    tst = fill_db_tables(cif, filename=z.cifname, path=fullpath,
-                                         structure_id=lastid, structures=structures)
+                    tst = fill_db_with_cif_data(cif, filename=z.cifname, path=fullpath, structure_id=lastid,
+                                                structures=structures)
                     if not tst:
                         if DEBUG:
                             print('cif file not added:', fullpath)
@@ -292,7 +292,7 @@ def put_files_in_db(self=None, searchpath: str = './', excludes: list = None, la
     return lastid - 1
 
 
-def fill_db_tables(cif: Cif, filename: str, path: str, structure_id: int,
+def fill_db_with_cif_data(cif: Cif, filename: str, path: str, structure_id: int,
                    structures: database_handler.StructureTable):
     """
     Fill all info from cif file into the database tables
@@ -326,7 +326,7 @@ def fill_db_tables(cif: Cif, filename: str, path: str, structure_id: int,
             volume = str(vol_unitcell(a, b, c, alpha, beta, gamma))
         except ValueError:
             volume = ''
-    # measurement_id = structures.fill_measuremnts_table(filename, structure_id)
+    # Unused value:
     measurement_id = 1
     structures.fill_structures_table(path, filename, structure_id, measurement_id, cif.cif_data['data'])
     structures.fill_cell_table(structure_id, a, b, c, alpha, beta, gamma, volume)
@@ -355,7 +355,7 @@ def fill_db_tables(cif: Cif, filename: str, path: str, structure_id: int,
             try:
                 xc, yc, zc = frac_to_cart([x[2], x[3], x[4]], [a, b, c, alpha, beta, gamma])
                 structures.fill_atoms_table(structure_id, name, atom_type_symbol,
-                                            x[2], x[3], x[4], occu, disord, xc, yc, zc)
+                                            x[2], x[3], x[4], occu, disord, round(xc, 5), round(yc, 5), round(zc, 5))
             except ValueError:
                 pass
                 # print(cif.cif_data['data'], path, filename)
@@ -379,7 +379,8 @@ def fill_db_with_res_data(res: ShelXFile, filename: str, path: str, structure_id
         return False
     if not res.cell.volume:
         return False
-    measurement_id = 1  # structures.fill_measuremnts_table(filename, structure_id)
+    # Unused value:
+    measurement_id = 1
     structures.fill_structures_table(path, filename, structure_id, measurement_id, res.titl)
     structures.fill_cell_table(structure_id, res.cell.a, res.cell.b, res.cell.c, res.cell.al,
                                res.cell.be, res.cell.ga, res.cell.volume)
@@ -396,7 +397,7 @@ def fill_db_with_res_data(res: ShelXFile, filename: str, path: str, structure_id
                                     at.z,
                                     at.sof,
                                     at.part.n,
-                                    at.xc, at.yc, at.zc)
+                                    round(at.xc, 5), round(at.yc, 5), round(at.zc, 5))
     cif = Cif(options=options)
     cif.cif_data["_cell_formula_units_Z"] = res.Z
     cif.cif_data["_space_group_symop_operation_xyz"] = "\n".join([repr(x) for x in res.symmcards])

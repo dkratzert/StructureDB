@@ -82,7 +82,7 @@ class ShelXFile():
     _goof_regex = re.compile(r'^REM\swR2\s=\s.*,\sGooF', re.IGNORECASE)
     _spgrp_regex = re.compile(r'^REM\s+\S+\s+in\s+\S+', re.IGNORECASE)
 
-    @time_this_method
+    #@time_this_method
     def __init__(self: 'ShelXFile', resfile: str):
         """
         Reads the shelx file and extracts information.
@@ -1111,7 +1111,7 @@ class ShelXFile():
 if __name__ == "__main__":
     # get_commands()
     # sys.exit()
-    file = r'/Users/daniel/GitHub/StructureFinder/test-data/p21c_a_only_isotropic.res'
+    file = r'/Users/daniel/GitHub/StructureFinder/p21c_a_only_isotropic.res'
     try:
         shx = ShelXFile(file)
     except Exception:
